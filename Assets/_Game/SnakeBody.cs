@@ -4,13 +4,12 @@ using UnityEngine;
 [RequireComponent(typeof(LineRenderer))]
 public class SnakeBody : MonoBehaviour
 {
-    private readonly List<Vector2Int> snakeCells = new();
+    private readonly List<Vector2Int> bodyCells = new();
 
     private LineRenderer trailRenderer;
     private Board board;
 
-    public IReadOnlyList<Vector2Int> SnakeCells => snakeCells;
-    public Vector2Int HeadCell => snakeCells.Count > 0 ? snakeCells[0] : Vector2Int.zero;
+    public IReadOnlyList<Vector2Int> BodyCells => bodyCells;
 
     private void Awake()
     {
@@ -22,36 +21,35 @@ public class SnakeBody : MonoBehaviour
         board = boardReference;
     }
 
-    public void ResetBody(Vector2Int startCell, int initialGrowth)
+    public void ResetBody(Vector2Int headCell, int initialGrowth)
     {
-        snakeCells.Clear();
-        snakeCells.Add(startCell);
+        bodyCells.Clear();
 
         for (int i = 0; i < initialGrowth; i++)
         {
-            snakeCells.Add(startCell);
+            bodyCells.Add(headCell);
         }
 
-        RefreshVisuals();
+        RefreshVisuals(headCell);
     }
 
-    public void MoveTo(Vector2Int newHead, bool shouldGrow)
+    public void MoveTo(Vector2Int headCell, Vector2Int previousHead, bool shouldGrow)
     {
-        snakeCells.Insert(0, newHead);
+        bodyCells.Insert(0, previousHead);
 
-        if (!shouldGrow && snakeCells.Count > 0)
+        if (!shouldGrow && bodyCells.Count > 0)
         {
-            snakeCells.RemoveAt(snakeCells.Count - 1);
+            bodyCells.RemoveAt(bodyCells.Count - 1);
         }
 
-        RefreshVisuals();
+        RefreshVisuals(headCell);
     }
 
     public int FindBodyCollisionIndex(Vector2Int headPosition)
     {
-        for (int i = 1; i < snakeCells.Count; i++)
+        for (int i = 0; i < bodyCells.Count; i++)
         {
-            if (snakeCells[i] == headPosition)
+            if (bodyCells[i] == headPosition)
             {
                 return i;
             }
@@ -62,30 +60,33 @@ public class SnakeBody : MonoBehaviour
 
     public int TrimFromIndex(int collisionIndex)
     {
-        int removedSegments = snakeCells.Count - collisionIndex;
+        int removedSegments = bodyCells.Count - collisionIndex;
 
-        for (int i = snakeCells.Count - 1; i >= collisionIndex; i--)
+        for (int i = bodyCells.Count - 1; i >= collisionIndex; i--)
         {
-            snakeCells.RemoveAt(i);
+            bodyCells.RemoveAt(i);
         }
 
-        RefreshVisuals();
         return removedSegments;
     }
 
-    private void RefreshVisuals()
+    public int TotalSegments => bodyCells.Count + 1;
+
+    public void RefreshVisuals(Vector2Int headCell)
     {
-        if (board == null || snakeCells.Count == 0)
+        if (board == null)
         {
             return;
         }
 
-        transform.position = board.GridToWorld(snakeCells[0]);
+        transform.position = board.GridToWorld(headCell);
 
-        trailRenderer.positionCount = snakeCells.Count;
-        for (int i = 0; i < snakeCells.Count; i++)
+        trailRenderer.positionCount = bodyCells.Count + 1;
+        trailRenderer.SetPosition(0, board.GridToWorld(headCell));
+
+        for (int i = 0; i < bodyCells.Count; i++)
         {
-            trailRenderer.SetPosition(i, board.GridToWorld(snakeCells[i]));
+            trailRenderer.SetPosition(i + 1, board.GridToWorld(bodyCells[i]));
         }
     }
 }

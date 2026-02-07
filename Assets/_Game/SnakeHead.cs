@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,6 +14,7 @@ public class SnakeHead : MonoBehaviour
     [SerializeField] private int initialGrowth = 2;
 
     private InputAction moveAction;
+    private Vector2Int headCell;
     private Vector2Int currentDirection = Vector2Int.right;
     private Vector2Int queuedDirection = Vector2Int.right;
     private float moveTimer;
@@ -92,21 +94,24 @@ public class SnakeHead : MonoBehaviour
             return;
         }
 
+        headCell = board.GetStartCell();
+
         snakeBody.Initialize(board);
-        snakeBody.ResetBody(board.GetStartCell(), initialGrowth);
+        snakeBody.ResetBody(headCell, initialGrowth);
 
         currentDirection = Vector2Int.right;
         queuedDirection = currentDirection;
         pendingGrowth = initialGrowth;
 
         scoreManager.ResetScore();
-        foodManager.SpawnFood(board, snakeBody.SnakeCells);
+        foodManager.SpawnFood(board, BuildOccupiedCells());
+        snakeBody.RefreshVisuals(headCell);
     }
 
     private void StepSnake()
     {
         currentDirection = queuedDirection;
-        Vector2Int nextHead = board.WrapPosition(snakeBody.HeadCell + currentDirection);
+        Vector2Int nextHead = board.WrapPosition(headCell + currentDirection);
 
         int collisionIndex = snakeBody.FindBodyCollisionIndex(nextHead);
         if (collisionIndex >= 0)
@@ -127,12 +132,24 @@ public class SnakeHead : MonoBehaviour
             pendingGrowth--;
         }
 
-        snakeBody.MoveTo(nextHead, shouldGrow);
+        Vector2Int previousHead = headCell;
+        headCell = nextHead;
+        snakeBody.MoveTo(headCell, previousHead, shouldGrow);
 
         if (ateFood)
         {
             scoreManager.AddFoodPoints();
-            foodManager.SpawnFood(board, snakeBody.SnakeCells);
+            foodManager.SpawnFood(board, BuildOccupiedCells());
         }
+    }
+
+    private List<Vector2Int> BuildOccupiedCells()
+    {
+        var occupied = new List<Vector2Int>(snakeBody.BodyCells.Count + 1)
+        {
+            headCell
+        };
+        occupied.AddRange(snakeBody.BodyCells);
+        return occupied;
     }
 }
