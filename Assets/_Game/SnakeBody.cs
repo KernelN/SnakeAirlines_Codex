@@ -91,7 +91,7 @@ public class SnakeBody : MonoBehaviour
             trailRenderer.SetPosition(i + 1, new Vector3(segment.x, segment.y, 0f));
         }
 
-        UpdateEdgeCollider(headPosition);
+        UpdateEdgeCollider();
     }
 
     public int FindClosestSegmentIndex(Vector2 worldPoint)
@@ -117,14 +117,14 @@ public class SnakeBody : MonoBehaviour
         return closestIndex;
     }
 
-    private void UpdateEdgeCollider(Vector2 headPosition)
+    private void UpdateEdgeCollider()
     {
         if (edgeCollider == null)
         {
             return;
         }
 
-        int totalPoints = bodySegments.Count + 1;
+        int totalPoints = bodySegments.Count;
         if (totalPoints < 2)
         {
             edgeCollider.points = System.Array.Empty<Vector2>();
@@ -132,11 +132,9 @@ public class SnakeBody : MonoBehaviour
         }
 
         Vector2[] points = new Vector2[totalPoints];
-        points[0] = transform.InverseTransformPoint(headPosition);
-
         for (int i = 0; i < bodySegments.Count; i++)
         {
-            points[i + 1] = transform.InverseTransformPoint(bodySegments[i]);
+            points[i] = transform.InverseTransformPoint(bodySegments[i]);
         }
 
         edgeCollider.points = points;
