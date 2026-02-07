@@ -11,7 +11,6 @@ public class SnakeHead : MonoBehaviour
     [SerializeField] private SnakeBody snakeBody;
     [SerializeField] private InputActionReference moveActionReference;
     [SerializeField] private float moveInterval = 0.12f;
-    [SerializeField] private int initialGrowth = 2;
 
     private InputAction moveAction;
     private Vector2Int headCell;
@@ -95,13 +94,14 @@ public class SnakeHead : MonoBehaviour
         }
 
         headCell = board.GetStartCell();
+        transform.position = board.GridToWorld(headCell);
 
         snakeBody.Initialize(board);
-        snakeBody.ResetBody(headCell, initialGrowth);
+        snakeBody.ResetBody(headCell);
 
         currentDirection = Vector2Int.right;
         queuedDirection = currentDirection;
-        pendingGrowth = initialGrowth;
+        pendingGrowth = snakeBody.BodyCells.Count;
 
         scoreManager.ResetScore();
         foodManager.SpawnFood(board, BuildOccupiedCells());
@@ -136,6 +136,7 @@ public class SnakeHead : MonoBehaviour
 
         Vector2Int previousHead = headCell;
         headCell = nextHead;
+        transform.position = board.GridToWorld(headCell);
         snakeBody.MoveTo(headCell, previousHead, shouldGrow);
 
         if (ateFood)

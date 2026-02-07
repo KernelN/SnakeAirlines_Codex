@@ -4,6 +4,8 @@ using UnityEngine;
 [RequireComponent(typeof(LineRenderer))]
 public class SnakeBody : MonoBehaviour
 {
+    [SerializeField] private int initialGrowth = 2;
+
     private readonly List<Vector2Int> bodyCells = new();
 
     private LineRenderer trailRenderer;
@@ -21,7 +23,7 @@ public class SnakeBody : MonoBehaviour
         board = boardReference;
     }
 
-    public void ResetBody(Vector2Int headCell, int initialGrowth)
+    public void ResetBody(Vector2Int headCell)
     {
         bodyCells.Clear();
 
@@ -78,8 +80,6 @@ public class SnakeBody : MonoBehaviour
         {
             return;
         }
-
-        transform.position = board.GridToWorld(headCell);
 
         trailRenderer.positionCount = bodyCells.Count + 1;
         trailRenderer.SetPosition(0, board.GridToWorld(headCell));
