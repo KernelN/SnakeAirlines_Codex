@@ -1,11 +1,11 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(Collider))]
+[RequireComponent(typeof(Rigidbody))]
 public class SnakeHead : MonoBehaviour
 {
-    [SerializeField] private Board board;
     [SerializeField] private FoodManager foodManager;
     [SerializeField] private ScoreManager scoreManager;
     [SerializeField] private SnakeBody snakeBody;
@@ -14,7 +14,6 @@ public class SnakeHead : MonoBehaviour
     [SerializeField] private InputActionReference dragPressActionReference;
     [SerializeField] private float moveSpeed = 4f;
     [SerializeField] private float eatRadius = 0.4f;
-    [SerializeField] private float bodyCollisionRadius = 0.35f;
 
     private InputAction moveAction;
     private InputAction dragPositionAction;
@@ -25,6 +24,7 @@ public class SnakeHead : MonoBehaviour
     private bool isDragging;
     private int pendingGrowth;
     private Camera mainCamera;
+    private Rigidbody headRigidbody;
 
     private void Awake()
     {
@@ -32,6 +32,9 @@ public class SnakeHead : MonoBehaviour
         dragPositionAction = dragPositionActionReference != null ? dragPositionActionReference.action : null;
         dragPressAction = dragPressActionReference != null ? dragPressActionReference.action : null;
         mainCamera = Camera.main;
+        headRigidbody = GetComponent<Rigidbody>();
+        headRigidbody.useGravity = false;
+        headRigidbody.isKinematic = true;
     }
 
     private void OnEnable()
@@ -131,16 +134,14 @@ public class SnakeHead : MonoBehaviour
 
     private void ResetSnake()
     {
-        if (board == null || foodManager == null || scoreManager == null || snakeBody == null)
+        if (foodManager == null || scoreManager == null || snakeBody == null)
         {
-            Debug.LogError("SnakeHead requires Board, FoodManager, ScoreManager, and SnakeBody references.");
+            Debug.LogError("SnakeHead requires FoodManager, ScoreManager, and SnakeBody references.");
             enabled = false;
             return;
         }
 
-        Vector2Int startCell = board.GetStartCell();
-        headPosition = board.GridToWorld(startCell);
-        transform.position = new Vector3(headPosition.x, headPosition.y, 0f);
+        headPosition = new Vector2(transform.position.x, transform.position.y);
 
         currentDirection = Vector2.right;
         lastDragDirection = currentDirection;
@@ -148,7 +149,7 @@ public class SnakeHead : MonoBehaviour
         pendingGrowth = snakeBody.BodySegments.Count;
 
         scoreManager.ResetScore();
-        foodManager.SpawnFood(board, BuildOccupiedPositions());
+        foodManager.SpawnFood();
         snakeBody.RefreshVisuals(headPosition);
         UpdateHeadRotation(currentDirection);
     }
@@ -158,14 +159,6 @@ public class SnakeHead : MonoBehaviour
         UpdateHeadRotation(currentDirection);
         float distance = moveSpeed * Time.deltaTime;
         headPosition += currentDirection * distance;
-        headPosition = board.ClampWorldPosition(headPosition);
-
-        int collisionIndex = snakeBody.FindBodyCollisionIndex(headPosition, bodyCollisionRadius);
-        if (collisionIndex >= 0)
-        {
-            int removed = snakeBody.TrimFromIndex(collisionIndex);
-            scoreManager.RemoveBodyPoints(removed);
-        }
 
         bool ateFood = foodManager.IsFoodNear(headPosition, eatRadius);
         if (ateFood)
@@ -179,13 +172,13 @@ public class SnakeHead : MonoBehaviour
             pendingGrowth--;
         }
 
-        transform.position = new Vector3(headPosition.x, headPosition.y, 0f);
+        headRigidbody.MovePosition(new Vector3(headPosition.x, headPosition.y, 0f));
         snakeBody.Advance(headPosition, shouldGrow);
 
         if (ateFood)
         {
             scoreManager.AddFoodPoints();
-            foodManager.SpawnFood(board, BuildOccupiedPositions());
+            foodManager.SpawnFood();
         }
     }
 
@@ -201,13 +194,13 @@ public class SnakeHead : MonoBehaviour
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 
-    private List<Vector2> BuildOccupiedPositions()
+    private void OnCollisionEnter(Collision collision)
     {
-        var occupied = new List<Vector2>(snakeBody.BodySegments.Count + 1)
+        if (collision.collider.TryGetComponent(out SnakeBodySegment segment)
+            && segment.Owner == snakeBody)
         {
-            headPosition
-        };
-        occupied.AddRange(snakeBody.BodySegments);
-        return occupied;
+            int removed = snakeBody.TrimFromIndex(segment.Index);
+            scoreManager.RemoveBodyPoints(removed);
+        }
     }
 }

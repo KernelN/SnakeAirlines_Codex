@@ -6,8 +6,11 @@ public class SnakeBody : MonoBehaviour
 {
     [SerializeField] private int initialGrowth = 2;
     [SerializeField] private float segmentSpacing = 0.5f;
+    [SerializeField] private float segmentColliderRadius = 0.2f;
+    [SerializeField] private GameObject segmentColliderPrefab;
 
     private readonly List<Vector2> bodySegments = new();
+    private readonly List<SnakeBodySegment> segmentColliders = new();
 
     private LineRenderer trailRenderer;
     private int targetSegments;
@@ -31,6 +34,7 @@ public class SnakeBody : MonoBehaviour
             bodySegments.Add(headPosition - (direction.normalized * segmentSpacing * (i + 1)));
         }
 
+        SyncSegmentColliders();
         RefreshVisuals(headPosition);
     }
 
@@ -60,21 +64,8 @@ public class SnakeBody : MonoBehaviour
             bodySegments.Add(bodySegments[^1]);
         }
 
+        SyncSegmentColliders();
         RefreshVisuals(headPosition);
-    }
-
-    public int FindBodyCollisionIndex(Vector2 headPosition, float collisionRadius)
-    {
-        float radiusSquared = collisionRadius * collisionRadius;
-        for (int i = 0; i < bodySegments.Count; i++)
-        {
-            if ((bodySegments[i] - headPosition).sqrMagnitude <= radiusSquared)
-            {
-                return i;
-            }
-        }
-
-        return -1;
     }
 
     public int TrimFromIndex(int collisionIndex)
@@ -101,5 +92,71 @@ public class SnakeBody : MonoBehaviour
             Vector2 segment = bodySegments[i];
             trailRenderer.SetPosition(i + 1, new Vector3(segment.x, segment.y, 0f));
         }
+    }
+
+    private void SyncSegmentColliders()
+    {
+        EnsureColliderCount(targetSegments);
+
+        for (int i = 0; i < segmentColliders.Count; i++)
+        {
+            bool shouldBeActive = i < bodySegments.Count;
+            SnakeBodySegment segment = segmentColliders[i];
+            segment.gameObject.SetActive(shouldBeActive);
+
+            if (!shouldBeActive)
+            {
+                continue;
+            }
+
+            Vector2 position = bodySegments[i];
+            segment.transform.position = new Vector3(position.x, position.y, 0f);
+            segment.SetIndex(i);
+        }
+    }
+
+    private void EnsureColliderCount(int count)
+    {
+        while (segmentColliders.Count < count)
+        {
+            SnakeBodySegment segment = CreateSegmentCollider();
+            segmentColliders.Add(segment);
+        }
+    }
+
+    private SnakeBodySegment CreateSegmentCollider()
+    {
+        GameObject segmentObject = segmentColliderPrefab != null
+            ? Instantiate(segmentColliderPrefab, transform)
+            : new GameObject("BodySegmentCollider");
+
+        segmentObject.transform.SetParent(transform, true);
+        segmentObject.layer = gameObject.layer;
+
+        Collider collider = segmentObject.GetComponent<Collider>();
+        if (collider == null)
+        {
+            SphereCollider sphere = segmentObject.AddComponent<SphereCollider>();
+            sphere.radius = segmentColliderRadius;
+            collider = sphere;
+        }
+
+        Rigidbody rigidbody = segmentObject.GetComponent<Rigidbody>();
+        if (rigidbody == null)
+        {
+            rigidbody = segmentObject.AddComponent<Rigidbody>();
+        }
+
+        rigidbody.useGravity = false;
+        rigidbody.isKinematic = true;
+
+        SnakeBodySegment segmentComponent = segmentObject.GetComponent<SnakeBodySegment>();
+        if (segmentComponent == null)
+        {
+            segmentComponent = segmentObject.AddComponent<SnakeBodySegment>();
+        }
+
+        segmentComponent.Initialize(this);
+        return segmentComponent;
     }
 }

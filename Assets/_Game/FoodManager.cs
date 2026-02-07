@@ -1,16 +1,18 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class FoodManager : MonoBehaviour
 {
     [SerializeField] private SnakeFood foodPrefab;
-    [SerializeField] private float spawnClearance = 0.5f;
+    [SerializeField] private Vector2 spawnAreaCenter = Vector2.zero;
+    [SerializeField] private Vector2 spawnAreaSize = new(24f, 16f);
+    [SerializeField] private LayerMask spawnBlockingLayers = ~0;
+    [SerializeField] private float spawnRaycastDistance = 10f;
 
     private SnakeFood activeFood;
 
     public Vector2 CurrentFoodPosition => activeFood != null ? activeFood.WorldPosition : new Vector2(float.MinValue, float.MinValue);
 
-    public void SpawnFood(Board board, IReadOnlyList<Vector2> occupiedPositions)
+    public void SpawnFood()
     {
         if (foodPrefab == null)
         {
@@ -23,12 +25,40 @@ public class FoodManager : MonoBehaviour
             Destroy(activeFood.gameObject);
         }
 
-        Vector2 spawnPosition = board.GetRandomFreePosition(occupiedPositions, spawnClearance);
+        Vector2 spawnPosition = FindFreeSpawnPosition();
         activeFood = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
     }
 
     public bool IsFoodNear(Vector2 position, float radius)
     {
         return activeFood != null && Vector2.Distance(activeFood.WorldPosition, position) <= radius;
+    }
+
+    private Vector2 FindFreeSpawnPosition()
+    {
+        Vector2 halfSize = spawnAreaSize * 0.5f;
+        Vector2 min = spawnAreaCenter - halfSize;
+        Vector2 max = spawnAreaCenter + halfSize;
+        int maxTries = Mathf.CeilToInt(spawnAreaSize.x * spawnAreaSize.y);
+
+        for (int i = 0; i < maxTries; i++)
+        {
+            Vector2 candidate = new Vector2(
+                Random.Range(min.x, max.x),
+                Random.Range(min.y, max.y));
+
+            if (IsSpawnLocationFree(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return spawnAreaCenter;
+    }
+
+    private bool IsSpawnLocationFree(Vector2 candidate)
+    {
+        Vector3 origin = new Vector3(candidate.x, candidate.y, -spawnRaycastDistance * 0.5f);
+        return !Physics.Raycast(origin, Vector3.forward, spawnRaycastDistance, spawnBlockingLayers);
     }
 }
