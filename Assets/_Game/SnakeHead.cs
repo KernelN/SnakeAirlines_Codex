@@ -196,10 +196,27 @@ public class SnakeHead : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.collider.TryGetComponent(out SnakeBodySegment segment)
-            && segment.Owner == snakeBody)
+        SnakeBody collidedBody = collision.collider.GetComponent<SnakeBody>();
+        if (collidedBody == null)
         {
-            int removed = snakeBody.TrimFromIndex(segment.Index);
+            collidedBody = collision.collider.GetComponentInParent<SnakeBody>();
+        }
+
+        if (collidedBody == null || collidedBody != snakeBody)
+        {
+            return;
+        }
+
+        if (collision.contactCount == 0)
+        {
+            return;
+        }
+
+        Vector2 contactPoint = collision.GetContact(0).point;
+        int hitIndex = snakeBody.FindClosestSegmentIndex(contactPoint);
+        if (hitIndex >= 0)
+        {
+            int removed = snakeBody.TrimFromIndex(hitIndex);
             scoreManager.RemoveBodyPoints(removed);
         }
     }

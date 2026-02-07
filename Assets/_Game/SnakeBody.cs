@@ -2,17 +2,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer))]
+[RequireComponent(typeof(EdgeCollider2D))]
 public class SnakeBody : MonoBehaviour
 {
     [SerializeField] private int initialGrowth = 2;
     [SerializeField] private float segmentSpacing = 0.5f;
-    [SerializeField] private float segmentColliderRadius = 0.2f;
-    [SerializeField] private GameObject segmentColliderPrefab;
 
     private readonly List<Vector2> bodySegments = new();
-    private readonly List<SnakeBodySegment> segmentColliders = new();
 
     private LineRenderer trailRenderer;
+    private EdgeCollider2D edgeCollider;
     private int targetSegments;
     private Vector2 lastSegmentAnchor;
 
@@ -21,6 +20,7 @@ public class SnakeBody : MonoBehaviour
     private void Awake()
     {
         trailRenderer = GetComponent<LineRenderer>();
+        edgeCollider = GetComponent<EdgeCollider2D>();
     }
 
     public void ResetBody(Vector2 headPosition, Vector2 direction)
@@ -34,7 +34,6 @@ public class SnakeBody : MonoBehaviour
             bodySegments.Add(headPosition - (direction.normalized * segmentSpacing * (i + 1)));
         }
 
-        SyncSegmentColliders();
         RefreshVisuals(headPosition);
     }
 
@@ -64,7 +63,6 @@ public class SnakeBody : MonoBehaviour
             bodySegments.Add(bodySegments[^1]);
         }
 
-        SyncSegmentColliders();
         RefreshVisuals(headPosition);
     }
 
@@ -92,71 +90,55 @@ public class SnakeBody : MonoBehaviour
             Vector2 segment = bodySegments[i];
             trailRenderer.SetPosition(i + 1, new Vector3(segment.x, segment.y, 0f));
         }
+
+        UpdateEdgeCollider(headPosition);
     }
 
-    private void SyncSegmentColliders()
+    public int FindClosestSegmentIndex(Vector2 worldPoint)
     {
-        EnsureColliderCount(targetSegments);
-
-        for (int i = 0; i < segmentColliders.Count; i++)
+        if (bodySegments.Count == 0)
         {
-            bool shouldBeActive = i < bodySegments.Count;
-            SnakeBodySegment segment = segmentColliders[i];
-            segment.gameObject.SetActive(shouldBeActive);
+            return -1;
+        }
 
-            if (!shouldBeActive)
+        int closestIndex = 0;
+        float closestDistanceSquared = float.MaxValue;
+
+        for (int i = 0; i < bodySegments.Count; i++)
+        {
+            float distanceSquared = (bodySegments[i] - worldPoint).sqrMagnitude;
+            if (distanceSquared < closestDistanceSquared)
             {
-                continue;
+                closestDistanceSquared = distanceSquared;
+                closestIndex = i;
             }
-
-            Vector2 position = bodySegments[i];
-            segment.transform.position = new Vector3(position.x, position.y, 0f);
-            segment.SetIndex(i);
         }
+
+        return closestIndex;
     }
 
-    private void EnsureColliderCount(int count)
+    private void UpdateEdgeCollider(Vector2 headPosition)
     {
-        while (segmentColliders.Count < count)
+        if (edgeCollider == null)
         {
-            SnakeBodySegment segment = CreateSegmentCollider();
-            segmentColliders.Add(segment);
-        }
-    }
-
-    private SnakeBodySegment CreateSegmentCollider()
-    {
-        GameObject segmentObject = segmentColliderPrefab != null
-            ? Instantiate(segmentColliderPrefab, transform)
-            : new GameObject("BodySegmentCollider");
-
-        segmentObject.transform.SetParent(transform, true);
-        segmentObject.layer = gameObject.layer;
-
-        Collider2D collider = segmentObject.GetComponent<Collider2D>();
-        if (collider == null)
-        {
-            CircleCollider2D circle = segmentObject.AddComponent<CircleCollider2D>();
-            circle.radius = segmentColliderRadius;
-            collider = circle;
+            return;
         }
 
-        Rigidbody2D rigidbody = segmentObject.GetComponent<Rigidbody2D>();
-        if (rigidbody == null)
+        int totalPoints = bodySegments.Count + 1;
+        if (totalPoints < 2)
         {
-            rigidbody = segmentObject.AddComponent<Rigidbody2D>();
+            edgeCollider.points = System.Array.Empty<Vector2>();
+            return;
         }
 
-        rigidbody.gravityScale = 0f;
-        rigidbody.isKinematic = true;
+        Vector2[] points = new Vector2[totalPoints];
+        points[0] = transform.InverseTransformPoint(headPosition);
 
-        SnakeBodySegment segmentComponent = segmentObject.GetComponent<SnakeBodySegment>();
-        if (segmentComponent == null)
+        for (int i = 0; i < bodySegments.Count; i++)
         {
-            segmentComponent = segmentObject.AddComponent<SnakeBodySegment>();
+            points[i + 1] = transform.InverseTransformPoint(bodySegments[i]);
         }
 
-        segmentComponent.Initialize(this);
-        return segmentComponent;
+        edgeCollider.points = points;
     }
 }
