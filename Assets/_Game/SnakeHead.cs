@@ -106,11 +106,13 @@ public class SnakeHead : MonoBehaviour
         scoreManager.ResetScore();
         foodManager.SpawnFood(board, BuildOccupiedCells());
         snakeBody.RefreshVisuals(headCell);
+        UpdateHeadRotation(currentDirection);
     }
 
     private void StepSnake()
     {
         currentDirection = queuedDirection;
+        UpdateHeadRotation(currentDirection);
         Vector2Int nextHead = board.WrapPosition(headCell + currentDirection);
 
         int collisionIndex = snakeBody.FindBodyCollisionIndex(nextHead);
@@ -141,6 +143,20 @@ public class SnakeHead : MonoBehaviour
             scoreManager.AddFoodPoints();
             foodManager.SpawnFood(board, BuildOccupiedCells());
         }
+    }
+
+    private void UpdateHeadRotation(Vector2Int direction)
+    {
+        float angle = direction switch
+        {
+            { x: > 0 } => 0f,
+            { x: < 0 } => 180f,
+            { y: > 0 } => 90f,
+            { y: < 0 } => -90f,
+            _ => transform.eulerAngles.z
+        };
+
+        transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 
     private List<Vector2Int> BuildOccupiedCells()
