@@ -5,53 +5,70 @@ using UnityEngine;
 public class SnakeBody : MonoBehaviour
 {
     [SerializeField] private int initialGrowth = 2;
+    [SerializeField] private float segmentSpacing = 0.5f;
 
-    private readonly List<Vector2Int> bodyCells = new();
+    private readonly List<Vector2> bodySegments = new();
 
     private LineRenderer trailRenderer;
-    private Board board;
+    private int targetSegments;
+    private Vector2 lastSegmentAnchor;
 
-    public IReadOnlyList<Vector2Int> BodyCells => bodyCells;
+    public IReadOnlyList<Vector2> BodySegments => bodySegments;
 
     private void Awake()
     {
         trailRenderer = GetComponent<LineRenderer>();
     }
 
-    public void Initialize(Board boardReference)
+    public void ResetBody(Vector2 headPosition, Vector2 direction)
     {
-        board = boardReference;
-    }
+        bodySegments.Clear();
+        targetSegments = initialGrowth;
+        lastSegmentAnchor = headPosition;
 
-    public void ResetBody(Vector2Int headCell)
-    {
-        bodyCells.Clear();
-
-        for (int i = 0; i < initialGrowth; i++)
+        for (int i = 0; i < targetSegments; i++)
         {
-            bodyCells.Add(headCell);
+            bodySegments.Add(headPosition - (direction.normalized * segmentSpacing * (i + 1)));
         }
 
-        RefreshVisuals(headCell);
+        RefreshVisuals(headPosition);
     }
 
-    public void MoveTo(Vector2Int headCell, Vector2Int previousHead, bool shouldGrow)
+    public void Advance(Vector2 headPosition, bool shouldGrow)
     {
-        bodyCells.Insert(0, previousHead);
-
-        if (!shouldGrow && bodyCells.Count > 0)
+        if (shouldGrow)
         {
-            bodyCells.RemoveAt(bodyCells.Count - 1);
+            targetSegments++;
         }
 
-        RefreshVisuals(headCell);
+        float distanceFromAnchor = Vector2.Distance(lastSegmentAnchor, headPosition);
+        while (distanceFromAnchor >= segmentSpacing)
+        {
+            Vector2 direction = (headPosition - lastSegmentAnchor).normalized;
+            lastSegmentAnchor += direction * segmentSpacing;
+            bodySegments.Insert(0, lastSegmentAnchor);
+            distanceFromAnchor = Vector2.Distance(lastSegmentAnchor, headPosition);
+
+            if (bodySegments.Count > targetSegments)
+            {
+                bodySegments.RemoveAt(bodySegments.Count - 1);
+            }
+        }
+
+        if (bodySegments.Count < targetSegments && bodySegments.Count > 0)
+        {
+            bodySegments.Add(bodySegments[^1]);
+        }
+
+        RefreshVisuals(headPosition);
     }
 
-    public int FindBodyCollisionIndex(Vector2Int headPosition)
+    public int FindBodyCollisionIndex(Vector2 headPosition, float collisionRadius)
     {
-        for (int i = 0; i < bodyCells.Count; i++)
+        float radiusSquared = collisionRadius * collisionRadius;
+        for (int i = 0; i < bodySegments.Count; i++)
         {
-            if (bodyCells[i] == headPosition)
+            if ((bodySegments[i] - headPosition).sqrMagnitude <= radiusSquared)
             {
                 return i;
             }
@@ -62,31 +79,27 @@ public class SnakeBody : MonoBehaviour
 
     public int TrimFromIndex(int collisionIndex)
     {
-        int removedSegments = bodyCells.Count - collisionIndex;
+        int removedSegments = bodySegments.Count - collisionIndex;
 
-        for (int i = bodyCells.Count - 1; i >= collisionIndex; i--)
+        for (int i = bodySegments.Count - 1; i >= collisionIndex; i--)
         {
-            bodyCells.RemoveAt(i);
+            bodySegments.RemoveAt(i);
         }
 
         return removedSegments;
     }
 
-    public int TotalSegments => bodyCells.Count + 1;
+    public int TotalSegments => bodySegments.Count + 1;
 
-    public void RefreshVisuals(Vector2Int headCell)
+    public void RefreshVisuals(Vector2 headPosition)
     {
-        if (board == null)
-        {
-            return;
-        }
+        trailRenderer.positionCount = bodySegments.Count + 1;
+        trailRenderer.SetPosition(0, new Vector3(headPosition.x, headPosition.y, 0f));
 
-        trailRenderer.positionCount = bodyCells.Count + 1;
-        trailRenderer.SetPosition(0, board.GridToWorld(headCell));
-
-        for (int i = 0; i < bodyCells.Count; i++)
+        for (int i = 0; i < bodySegments.Count; i++)
         {
-            trailRenderer.SetPosition(i + 1, board.GridToWorld(bodyCells[i]));
+            Vector2 segment = bodySegments[i];
+            trailRenderer.SetPosition(i + 1, new Vector3(segment.x, segment.y, 0f));
         }
     }
 }

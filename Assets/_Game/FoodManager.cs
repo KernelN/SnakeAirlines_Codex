@@ -4,12 +4,13 @@ using UnityEngine;
 public class FoodManager : MonoBehaviour
 {
     [SerializeField] private SnakeFood foodPrefab;
+    [SerializeField] private float spawnClearance = 0.5f;
 
     private SnakeFood activeFood;
 
-    public Vector2Int CurrentFoodCell => activeFood != null ? activeFood.GridPosition : new Vector2Int(int.MinValue, int.MinValue);
+    public Vector2 CurrentFoodPosition => activeFood != null ? activeFood.WorldPosition : new Vector2(float.MinValue, float.MinValue);
 
-    public void SpawnFood(Board board, IReadOnlyList<Vector2Int> occupiedCells)
+    public void SpawnFood(Board board, IReadOnlyList<Vector2> occupiedPositions)
     {
         if (foodPrefab == null)
         {
@@ -22,13 +23,12 @@ public class FoodManager : MonoBehaviour
             Destroy(activeFood.gameObject);
         }
 
-        Vector2Int spawnCell = board.GetRandomFreeCell(occupiedCells);
-        activeFood = Instantiate(foodPrefab, board.GridToWorld(spawnCell), Quaternion.identity);
-        activeFood.SetGridPosition(spawnCell);
+        Vector2 spawnPosition = board.GetRandomFreePosition(occupiedPositions, spawnClearance);
+        activeFood = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
     }
 
-    public bool IsFoodAt(Vector2Int cell)
+    public bool IsFoodNear(Vector2 position, float radius)
     {
-        return activeFood != null && activeFood.GridPosition == cell;
+        return activeFood != null && Vector2.Distance(activeFood.WorldPosition, position) <= radius;
     }
 }
