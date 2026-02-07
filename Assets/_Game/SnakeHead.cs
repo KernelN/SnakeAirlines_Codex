@@ -2,8 +2,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(SpriteRenderer))]
-[RequireComponent(typeof(Collider))]
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Collider2D))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class SnakeHead : MonoBehaviour
 {
     [SerializeField] private FoodManager foodManager;
@@ -24,7 +24,7 @@ public class SnakeHead : MonoBehaviour
     private bool isDragging;
     private int pendingGrowth;
     private Camera mainCamera;
-    private Rigidbody headRigidbody;
+    private Rigidbody2D headRigidbody;
 
     private void Awake()
     {
@@ -32,8 +32,8 @@ public class SnakeHead : MonoBehaviour
         dragPositionAction = dragPositionActionReference != null ? dragPositionActionReference.action : null;
         dragPressAction = dragPressActionReference != null ? dragPressActionReference.action : null;
         mainCamera = Camera.main;
-        headRigidbody = GetComponent<Rigidbody>();
-        headRigidbody.useGravity = false;
+        headRigidbody = GetComponent<Rigidbody2D>();
+        headRigidbody.gravityScale = 0f;
         headRigidbody.isKinematic = true;
     }
 
@@ -172,7 +172,7 @@ public class SnakeHead : MonoBehaviour
             pendingGrowth--;
         }
 
-        headRigidbody.MovePosition(new Vector3(headPosition.x, headPosition.y, 0f));
+        headRigidbody.MovePosition(new Vector2(headPosition.x, headPosition.y));
         snakeBody.Advance(headPosition, shouldGrow);
 
         if (ateFood)
@@ -194,7 +194,7 @@ public class SnakeHead : MonoBehaviour
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.collider.TryGetComponent(out SnakeBodySegment segment)
             && segment.Owner == snakeBody)

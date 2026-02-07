@@ -133,21 +133,21 @@ public class SnakeBody : MonoBehaviour
         segmentObject.transform.SetParent(transform, true);
         segmentObject.layer = gameObject.layer;
 
-        Collider collider = segmentObject.GetComponent<Collider>();
+        Collider2D collider = segmentObject.GetComponent<Collider2D>();
         if (collider == null)
         {
-            SphereCollider sphere = segmentObject.AddComponent<SphereCollider>();
-            sphere.radius = segmentColliderRadius;
-            collider = sphere;
+            CircleCollider2D circle = segmentObject.AddComponent<CircleCollider2D>();
+            circle.radius = segmentColliderRadius;
+            collider = circle;
         }
 
-        Rigidbody rigidbody = segmentObject.GetComponent<Rigidbody>();
+        Rigidbody2D rigidbody = segmentObject.GetComponent<Rigidbody2D>();
         if (rigidbody == null)
         {
-            rigidbody = segmentObject.AddComponent<Rigidbody>();
+            rigidbody = segmentObject.AddComponent<Rigidbody2D>();
         }
 
-        rigidbody.useGravity = false;
+        rigidbody.gravityScale = 0f;
         rigidbody.isKinematic = true;
 
         SnakeBodySegment segmentComponent = segmentObject.GetComponent<SnakeBodySegment>();

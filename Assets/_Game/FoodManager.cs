@@ -58,7 +58,8 @@ public class FoodManager : MonoBehaviour
 
     private bool IsSpawnLocationFree(Vector2 candidate)
     {
-        Vector3 origin = new Vector3(candidate.x, candidate.y, -spawnRaycastDistance * 0.5f);
-        return !Physics.Raycast(origin, Vector3.forward, spawnRaycastDistance, spawnBlockingLayers);
+        Vector2 origin = new Vector2(candidate.x, candidate.y);
+        RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.up, spawnRaycastDistance, spawnBlockingLayers);
+        return !hit;
     }
 }
