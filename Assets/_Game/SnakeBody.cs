@@ -76,6 +76,7 @@ public class SnakeBody : MonoBehaviour
         }
 
         RefreshVisuals(headPosition);
+        targetSegments = bodySegments.Count;
         return removedSegments;
     }
 
