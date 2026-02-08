@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer))]
-[RequireComponent(typeof(EdgeCollider2D))]
 public class SnakeBody : MonoBehaviour
 {
     [SerializeField] private int initialGrowth = 2;
@@ -12,16 +11,19 @@ public class SnakeBody : MonoBehaviour
     private readonly List<Vector2> bodySegments = new();
 
     private LineRenderer trailRenderer;
-    private EdgeCollider2D edgeCollider;
     private int targetSegments;
     private Vector2 lastSegmentAnchor;
 
     public IReadOnlyList<Vector2> BodySegments => bodySegments;
+    public float SegmentSpacing => segmentSpacing;
 
     private void Awake()
     {
         trailRenderer = GetComponent<LineRenderer>();
-        edgeCollider = GetComponent<EdgeCollider2D>();
+        if (TryGetComponent(out EdgeCollider2D collider))
+        {
+            collider.enabled = false;
+        }
     }
 
     public void ResetBody(Vector2 headPosition, Vector2 direction)
@@ -93,8 +95,6 @@ public class SnakeBody : MonoBehaviour
             Vector2 segment = bodySegments[i];
             trailRenderer.SetPosition(i + 1, new Vector3(segment.x, segment.y, 0f));
         }
-
-        UpdateEdgeCollider();
     }
 
     public int FindClosestSegmentIndex(Vector2 worldPoint)
@@ -120,26 +120,22 @@ public class SnakeBody : MonoBehaviour
         return closestIndex;
     }
 
-    private void UpdateEdgeCollider()
+    public int FindCollisionIndex(Vector2 headPosition, float collisionRadius)
     {
-        if (edgeCollider == null)
+        if (bodySegments.Count == 0)
         {
-            return;
+            return -1;
         }
 
-        int totalPoints = bodySegments.Count;
-        if (totalPoints < 2)
+        float radiusSquared = collisionRadius * collisionRadius;
+        for (int i = minTrimIndex; i < bodySegments.Count; i++)
         {
-            edgeCollider.points = System.Array.Empty<Vector2>();
-            return;
+            if ((bodySegments[i] - headPosition).sqrMagnitude <= radiusSquared)
+            {
+                return i;
+            }
         }
 
-        Vector2[] points = new Vector2[totalPoints];
-        for (int i = 0; i < bodySegments.Count; i++)
-        {
-            points[i] = transform.InverseTransformPoint(bodySegments[i]);
-        }
-
-        edgeCollider.points = points;
+        return -1;
     }
 }

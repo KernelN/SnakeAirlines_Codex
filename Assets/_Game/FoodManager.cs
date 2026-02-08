@@ -3,6 +3,7 @@ using UnityEngine;
 public class FoodManager : MonoBehaviour
 {
     [SerializeField] private SnakeFood foodPrefab;
+    [SerializeField] private Board board;
     [SerializeField] private Vector2 spawnAreaCenter = Vector2.zero;
     [SerializeField] private Vector2 spawnAreaSize = new(24f, 16f);
     [SerializeField] private LayerMask spawnBlockingLayers = ~0;
@@ -31,10 +32,12 @@ public class FoodManager : MonoBehaviour
 
     private Vector2 FindFreeSpawnPosition()
     {
-        Vector2 halfSize = spawnAreaSize * 0.5f;
-        Vector2 min = spawnAreaCenter - halfSize;
-        Vector2 max = spawnAreaCenter + halfSize;
-        int maxTries = Mathf.CeilToInt(spawnAreaSize.x * spawnAreaSize.y);
+        Vector2 areaCenter = board ? board.Center : spawnAreaCenter;
+        Vector2 areaSize = board ? board.Size : spawnAreaSize;
+        Vector2 halfSize = areaSize * 0.5f;
+        Vector2 min = areaCenter - halfSize;
+        Vector2 max = areaCenter + halfSize;
+        int maxTries = Mathf.CeilToInt(areaSize.x * areaSize.y);
 
         for (int i = 0; i < maxTries; i++)
         {
@@ -48,7 +51,7 @@ public class FoodManager : MonoBehaviour
             }
         }
 
-        return spawnAreaCenter;
+        return areaCenter;
     }
 
     private bool IsSpawnLocationFree(Vector2 candidate)
