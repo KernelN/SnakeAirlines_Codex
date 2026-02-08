@@ -6,24 +6,23 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D))]
 public class SnakeHead : MonoBehaviour
 {
-    [SerializeField] private FoodManager foodManager;
-    [SerializeField] private ScoreManager scoreManager;
-    [SerializeField] private SnakeBody snakeBody;
-    [SerializeField] private InputActionReference moveActionReference;
-    [SerializeField] private InputActionReference dragPositionActionReference;
-    [SerializeField] private InputActionReference dragPressActionReference;
-    [SerializeField] private float moveSpeed = 4f;
+    [SerializeField] FoodManager foodManager;
+    [SerializeField] ScoreManager scoreManager;
+    [SerializeField] SnakeBody snakeBody;
+    [SerializeField] InputActionReference dragPositionActionReference;
+    InputAction dragPositionAction;
+    [SerializeField] InputActionReference dragPressActionReference;
+    InputAction dragPressAction;
+    [SerializeField] float moveSpeed = 4f;
+    [SerializeField] Rigidbody2D headRigidbody;
+    [SerializeField] private float rotationSpeed = 720f;
 
-    private InputAction moveAction;
-    private InputAction dragPositionAction;
-    private InputAction dragPressAction;
-    private Vector2 headPosition;
-    private Vector2 currentDirection = Vector2.right;
-    private Vector2 lastDragDirection = Vector2.right;
-    private bool isDragging;
-    private int pendingGrowth;
-    private Camera mainCamera;
-    private Rigidbody2D headRigidbody;
+    Vector2 headPosition;
+    Vector2 currentDirection = Vector2.right;
+    Vector2 lastDragDirection = Vector2.right;
+    bool isDragging;
+    int pendingGrowth;
+    Camera mainCamera;
 
     private void Awake()
     {
@@ -34,12 +33,6 @@ public class SnakeHead : MonoBehaviour
 
     private void OnEnable()
     {
-        if (moveAction != null)
-        {
-            moveAction.performed += OnMovePerformed;
-            moveAction.Enable();
-        }
-
         if (dragPressAction != null)
         {
             dragPressAction.started += OnDragStarted;
@@ -55,12 +48,6 @@ public class SnakeHead : MonoBehaviour
 
     private void OnDisable()
     {
-        if (moveAction != null)
-        {
-            moveAction.performed -= OnMovePerformed;
-            moveAction.Disable();
-        }
-
         if (dragPressAction != null)
         {
             dragPressAction.started -= OnDragStarted;
@@ -84,13 +71,7 @@ public class SnakeHead : MonoBehaviour
         UpdateDirectionFromInput();
         StepSnake();
     }
-
-    private void OnMovePerformed(InputAction.CallbackContext context)
-    {
-        Vector2 input = context.ReadValue<Vector2>();
-        UpdateDirectionFromVector(input);
-    }
-
+    
     private void OnDragStarted(InputAction.CallbackContext context)
     {
         isDragging = true;
@@ -99,12 +80,11 @@ public class SnakeHead : MonoBehaviour
     private void OnDragCanceled(InputAction.CallbackContext context)
     {
         isDragging = false;
-        currentDirection = lastDragDirection;
     }
 
     private void UpdateDirectionFromInput()
     {
-        if (isDragging && dragPositionAction != null && mainCamera != null)
+        if (isDragging && dragPositionAction != null && mainCamera)
         {
             Vector2 screenPosition = dragPositionAction.ReadValue<Vector2>();
             Vector3 worldPoint = mainCamera.ScreenToWorldPoint(new Vector3(
@@ -119,12 +99,9 @@ public class SnakeHead : MonoBehaviour
     private void UpdateDirectionFromVector(Vector2 input)
     {
         if (input.sqrMagnitude <= 0.01f)
-        {
             return;
-        }
 
         currentDirection = input.normalized;
-        lastDragDirection = currentDirection;
     }
 
     private void ResetSnake()
@@ -153,7 +130,7 @@ public class SnakeHead : MonoBehaviour
     {
         UpdateHeadRotation(currentDirection);
         float distance = moveSpeed * Time.deltaTime;
-        headPosition += currentDirection * distance;
+        headPosition += (Vector2)transform.up * distance;
 
         bool shouldGrow = pendingGrowth > 0;
         if (shouldGrow)
@@ -174,9 +151,17 @@ public class SnakeHead : MonoBehaviour
             return;
         }
 
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f; //fix head rotation
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
 
-        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        Quaternion targetRotation = Quaternion.Euler(0f, 0f, angle);
+        if (rotationSpeed <= 0f)
+        {
+            transform.rotation = targetRotation;
+            return;
+        }
+
+        float maxStep = rotationSpeed * Time.deltaTime;
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, maxStep);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

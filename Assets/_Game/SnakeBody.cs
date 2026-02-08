@@ -6,6 +6,7 @@ using UnityEngine;
 public class SnakeBody : MonoBehaviour
 {
     [SerializeField] private int initialGrowth = 2;
+    [SerializeField] int minTrimIndex = 2;
     [SerializeField] private float segmentSpacing = 0.5f;
 
     private readonly List<Vector2> bodySegments = new();
@@ -103,10 +104,10 @@ public class SnakeBody : MonoBehaviour
             return -1;
         }
 
-        int closestIndex = 0;
+        int closestIndex = -1;
         float closestDistanceSquared = float.MaxValue;
 
-        for (int i = 0; i < bodySegments.Count; i++)
+        for (int i = minTrimIndex; i < bodySegments.Count; i++)
         {
             float distanceSquared = (bodySegments[i] - worldPoint).sqrMagnitude;
             if (distanceSquared < closestDistanceSquared)
