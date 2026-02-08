@@ -13,6 +13,7 @@ public class SnakeHead : MonoBehaviour
     [SerializeField] private InputActionReference dragPositionActionReference;
     [SerializeField] private InputActionReference dragPressActionReference;
     [SerializeField] private float moveSpeed = 4f;
+    [SerializeField] private float rotationSpeed = 720f;
 
     private InputAction moveAction;
     private InputAction dragPositionAction;
@@ -176,7 +177,15 @@ public class SnakeHead : MonoBehaviour
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f; //fix head rotation
 
-        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        Quaternion targetRotation = Quaternion.Euler(0f, 0f, angle);
+        if (rotationSpeed <= 0f)
+        {
+            transform.rotation = targetRotation;
+            return;
+        }
+
+        float maxStep = rotationSpeed * Time.deltaTime;
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, maxStep);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
