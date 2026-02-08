@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(SpriteRenderer))]
-[RequireComponent(typeof(Rigidbody2D))]
 public class SnakeHead : MonoBehaviour
 {
     [SerializeField] FoodManager foodManager;
@@ -13,7 +12,6 @@ public class SnakeHead : MonoBehaviour
     [SerializeField] InputActionReference dragPressActionReference;
     InputAction dragPressAction;
     [SerializeField] float moveSpeed = 4f;
-    [SerializeField] Rigidbody2D headRigidbody;
     [SerializeField] private float rotationSpeed = 720f;
     [SerializeField] private float foodCollisionRadius = 0.4f;
     [SerializeField] private float selfCollisionRadius = 0.3f;
@@ -143,8 +141,8 @@ public class SnakeHead : MonoBehaviour
             pendingGrowth--;
         }
 
-        headRigidbody.MovePosition(new Vector2(headPosition.x, headPosition.y));
-        snakeBody.Advance(headPosition, shouldGrow);
+        transform.position = new Vector2(headPosition.x, headPosition.y);
+        snakeBody.Advance(headPosition, currentDirection, shouldGrow);
         CheckFoodCollision();
         CheckSelfCollision();
     }
