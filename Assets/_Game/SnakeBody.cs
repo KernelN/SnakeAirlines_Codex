@@ -66,7 +66,7 @@ public class SnakeBody : MonoBehaviour
         RefreshVisuals(headPosition);
     }
 
-    public int TrimFromIndex(int collisionIndex)
+    public int TrimFromIndex(int collisionIndex, Vector2 headPosition)
     {
         int removedSegments = bodySegments.Count - collisionIndex;
 
@@ -75,6 +75,7 @@ public class SnakeBody : MonoBehaviour
             bodySegments.RemoveAt(i);
         }
 
+        RefreshVisuals(headPosition);
         return removedSegments;
     }
 

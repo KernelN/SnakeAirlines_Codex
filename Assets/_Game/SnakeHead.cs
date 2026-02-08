@@ -213,7 +213,7 @@ public class SnakeHead : MonoBehaviour
         int hitIndex = snakeBody.FindClosestSegmentIndex(contactPoint);
         if (hitIndex >= 0)
         {
-            int removed = snakeBody.TrimFromIndex(hitIndex);
+            int removed = snakeBody.TrimFromIndex(hitIndex, headPosition);
             scoreManager.RemoveBodyPoints(removed);
         }
     }
