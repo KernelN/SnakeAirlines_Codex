@@ -12,7 +12,7 @@ public class SnakeBody : MonoBehaviour
 
     private LineRenderer trailRenderer;
     private int targetSegments;
-    private Vector2 lastSegmentAnchor;
+    private Vector2 lastHeadPosition;
 
     public IReadOnlyList<Vector2> BodySegments => bodySegments;
     public float SegmentSpacing => segmentSpacing;
@@ -30,7 +30,7 @@ public class SnakeBody : MonoBehaviour
     {
         bodySegments.Clear();
         targetSegments = initialGrowth;
-        lastSegmentAnchor = headPosition;
+        lastHeadPosition = headPosition;
 
         for (int i = 0; i < targetSegments; i++)
         {
@@ -47,24 +47,38 @@ public class SnakeBody : MonoBehaviour
             targetSegments++;
         }
 
-        float distanceFromAnchor = Vector2.Distance(lastSegmentAnchor, headPosition);
-        while (distanceFromAnchor >= segmentSpacing)
+        while (bodySegments.Count < targetSegments)
         {
-            Vector2 direction = (headPosition - lastSegmentAnchor).normalized;
-            lastSegmentAnchor += direction * segmentSpacing;
-            bodySegments.Insert(0, lastSegmentAnchor);
-            distanceFromAnchor = Vector2.Distance(lastSegmentAnchor, headPosition);
+            Vector2 tailPosition = bodySegments.Count > 0 ? bodySegments[^1] : headPosition;
+            bodySegments.Add(tailPosition);
+        }
 
-            if (bodySegments.Count > targetSegments)
+        Vector2 fallbackDirection = (headPosition - lastHeadPosition).sqrMagnitude > 0f
+            ? (headPosition - lastHeadPosition).normalized
+            : Vector2.right;
+
+        Vector2 previousPosition = headPosition;
+        for (int i = 0; i < bodySegments.Count; i++)
+        {
+            Vector2 current = bodySegments[i];
+            Vector2 direction = current - previousPosition;
+            if (direction.sqrMagnitude <= Mathf.Epsilon)
             {
-                bodySegments.RemoveAt(bodySegments.Count - 1);
+                direction = fallbackDirection;
             }
+
+            Vector2 newPosition = previousPosition + direction.normalized * segmentSpacing;
+            bodySegments[i] = newPosition;
+            previousPosition = newPosition;
+            fallbackDirection = direction.normalized;
         }
 
-        if (bodySegments.Count < targetSegments && bodySegments.Count > 0)
+        while (bodySegments.Count > targetSegments)
         {
-            bodySegments.Add(bodySegments[^1]);
+            bodySegments.RemoveAt(bodySegments.Count - 1);
         }
+
+        lastHeadPosition = headPosition;
 
         RefreshVisuals(headPosition);
     }
