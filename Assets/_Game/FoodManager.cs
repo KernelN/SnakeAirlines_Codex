@@ -29,11 +29,6 @@ public class FoodManager : MonoBehaviour
         activeFood = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
     }
 
-    public bool IsFoodNear(Vector2 position, float radius)
-    {
-        return activeFood != null && Vector2.Distance(activeFood.WorldPosition, position) <= radius;
-    }
-
     private Vector2 FindFreeSpawnPosition()
     {
         Vector2 halfSize = spawnAreaSize * 0.5f;

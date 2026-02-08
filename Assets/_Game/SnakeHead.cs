@@ -13,7 +13,6 @@ public class SnakeHead : MonoBehaviour
     [SerializeField] private InputActionReference dragPositionActionReference;
     [SerializeField] private InputActionReference dragPressActionReference;
     [SerializeField] private float moveSpeed = 4f;
-    [SerializeField] private float eatRadius = 0.4f;
 
     private InputAction moveAction;
     private InputAction dragPositionAction;
@@ -160,12 +159,6 @@ public class SnakeHead : MonoBehaviour
         float distance = moveSpeed * Time.deltaTime;
         headPosition += currentDirection * distance;
 
-        bool ateFood = foodManager.IsFoodNear(headPosition, eatRadius);
-        if (ateFood)
-        {
-            pendingGrowth++;
-        }
-
         bool shouldGrow = pendingGrowth > 0;
         if (shouldGrow)
         {
@@ -175,11 +168,7 @@ public class SnakeHead : MonoBehaviour
         headRigidbody.MovePosition(new Vector2(headPosition.x, headPosition.y));
         snakeBody.Advance(headPosition, shouldGrow);
 
-        if (ateFood)
-        {
-            scoreManager.AddFoodPoints();
-            foodManager.SpawnFood();
-        }
+        // Food collection is handled via OnCollisionEnter2D.
     }
 
     private void UpdateHeadRotation(Vector2 direction)
@@ -196,6 +185,14 @@ public class SnakeHead : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        if (collision.collider.TryGetComponent(out SnakeFood _))
+        {
+            pendingGrowth++;
+            scoreManager.AddFoodPoints();
+            foodManager.SpawnFood();
+            return;
+        }
+
         SnakeBody collidedBody = collision.collider.GetComponent<SnakeBody>();
         if (collidedBody == null)
         {
