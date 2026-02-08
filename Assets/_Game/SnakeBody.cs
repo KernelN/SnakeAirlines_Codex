@@ -119,6 +119,29 @@ public class SnakeBody : MonoBehaviour
         return closestIndex;
     }
 
+    public bool TryFindCollisionIndex(Vector2 headPosition, float collisionRadius, int ignoreSegments, out int hitIndex)
+    {
+        hitIndex = -1;
+        if (bodySegments.Count == 0)
+        {
+            return false;
+        }
+
+        float radiusSquared = collisionRadius * collisionRadius;
+        int startIndex = Mathf.Clamp(ignoreSegments, 0, bodySegments.Count);
+
+        for (int i = startIndex; i < bodySegments.Count; i++)
+        {
+            if ((bodySegments[i] - headPosition).sqrMagnitude <= radiusSquared)
+            {
+                hitIndex = i;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void UpdateEdgeCollider()
     {
         if (edgeCollider == null)

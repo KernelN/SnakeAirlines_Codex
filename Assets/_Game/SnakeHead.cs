@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(SpriteRenderer))]
-[RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(Rigidbody2D))]
 public class SnakeHead : MonoBehaviour
 {
@@ -13,6 +12,9 @@ public class SnakeHead : MonoBehaviour
     [SerializeField] private InputActionReference dragPositionActionReference;
     [SerializeField] private InputActionReference dragPressActionReference;
     [SerializeField] private float moveSpeed = 4f;
+    [SerializeField] private float foodCollectRadius = 0.4f;
+    [SerializeField] private float selfCollisionRadius = 0.35f;
+    [SerializeField] private int selfCollisionIgnoreSegments = 2;
 
     private InputAction moveAction;
     private InputAction dragPositionAction;
@@ -30,6 +32,7 @@ public class SnakeHead : MonoBehaviour
         dragPositionAction = dragPositionActionReference ? dragPositionActionReference.action : null;
         dragPressAction = dragPressActionReference ? dragPressActionReference.action : null;
         mainCamera = Camera.main;
+        headRigidbody = GetComponent<Rigidbody2D>();
     }
 
     private void OnEnable()
@@ -164,7 +167,8 @@ public class SnakeHead : MonoBehaviour
         headRigidbody.MovePosition(new Vector2(headPosition.x, headPosition.y));
         snakeBody.Advance(headPosition, shouldGrow);
 
-        // Food collection is handled via OnCollisionEnter2D.
+        CheckFoodCollision();
+        CheckSelfCollision();
     }
 
     private void UpdateHeadRotation(Vector2 direction)
@@ -179,35 +183,22 @@ public class SnakeHead : MonoBehaviour
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void CheckFoodCollision()
     {
-        if (collision.collider.TryGetComponent(out SnakeFood _))
-        {
-            pendingGrowth++;
-            scoreManager.AddFoodPoints();
-            foodManager.SpawnFood();
-            return;
-        }
-
-        SnakeBody collidedBody = collision.collider.GetComponent<SnakeBody>();
-        if (!collidedBody)
-        {
-            collidedBody = collision.collider.GetComponentInParent<SnakeBody>();
-        }
-
-        if (!collidedBody || collidedBody != snakeBody)
+        Vector2 foodPosition = foodManager.CurrentFoodPosition;
+        if ((foodPosition - headPosition).sqrMagnitude > foodCollectRadius * foodCollectRadius)
         {
             return;
         }
 
-        if (collision.contactCount == 0)
-        {
-            return;
-        }
+        pendingGrowth++;
+        scoreManager.AddFoodPoints();
+        foodManager.SpawnFood();
+    }
 
-        Vector2 contactPoint = collision.GetContact(0).point;
-        int hitIndex = snakeBody.FindClosestSegmentIndex(contactPoint);
-        if (hitIndex >= 0)
+    private void CheckSelfCollision()
+    {
+        if (snakeBody.TryFindCollisionIndex(headPosition, selfCollisionRadius, selfCollisionIgnoreSegments, out int hitIndex))
         {
             int removed = snakeBody.TrimFromIndex(hitIndex, headPosition);
             scoreManager.RemoveBodyPoints(removed);
