@@ -27,13 +27,9 @@ public class SnakeHead : MonoBehaviour
 
     private void Awake()
     {
-        moveAction = moveActionReference != null ? moveActionReference.action : null;
-        dragPositionAction = dragPositionActionReference != null ? dragPositionActionReference.action : null;
-        dragPressAction = dragPressActionReference != null ? dragPressActionReference.action : null;
+        dragPositionAction = dragPositionActionReference ? dragPositionActionReference.action : null;
+        dragPressAction = dragPressActionReference ? dragPressActionReference.action : null;
         mainCamera = Camera.main;
-        headRigidbody = GetComponent<Rigidbody2D>();
-        headRigidbody.gravityScale = 0f;
-        headRigidbody.isKinematic = true;
     }
 
     private void OnEnable()
@@ -178,7 +174,7 @@ public class SnakeHead : MonoBehaviour
             return;
         }
 
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f; //fix head rotation
 
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
@@ -194,12 +190,12 @@ public class SnakeHead : MonoBehaviour
         }
 
         SnakeBody collidedBody = collision.collider.GetComponent<SnakeBody>();
-        if (collidedBody == null)
+        if (!collidedBody)
         {
             collidedBody = collision.collider.GetComponentInParent<SnakeBody>();
         }
 
-        if (collidedBody == null || collidedBody != snakeBody)
+        if (!collidedBody || collidedBody != snakeBody)
         {
             return;
         }
