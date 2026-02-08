@@ -1,27 +1,35 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(Collider2D))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class SnakeHead : MonoBehaviour
 {
-    [SerializeField] private Board board;
     [SerializeField] private FoodManager foodManager;
     [SerializeField] private ScoreManager scoreManager;
     [SerializeField] private SnakeBody snakeBody;
     [SerializeField] private InputActionReference moveActionReference;
-    [SerializeField] private float moveInterval = 0.12f;
+    [SerializeField] private InputActionReference dragPositionActionReference;
+    [SerializeField] private InputActionReference dragPressActionReference;
+    [SerializeField] private float moveSpeed = 4f;
 
     private InputAction moveAction;
-    private Vector2Int headCell;
-    private Vector2Int currentDirection = Vector2Int.right;
-    private Vector2Int queuedDirection = Vector2Int.right;
-    private float moveTimer;
+    private InputAction dragPositionAction;
+    private InputAction dragPressAction;
+    private Vector2 headPosition;
+    private Vector2 currentDirection = Vector2.right;
+    private Vector2 lastDragDirection = Vector2.right;
+    private bool isDragging;
     private int pendingGrowth;
+    private Camera mainCamera;
+    private Rigidbody2D headRigidbody;
 
     private void Awake()
     {
-        moveAction = moveActionReference != null ? moveActionReference.action : null;
+        dragPositionAction = dragPositionActionReference ? dragPositionActionReference.action : null;
+        dragPressAction = dragPressActionReference ? dragPressActionReference.action : null;
+        mainCamera = Camera.main;
     }
 
     private void OnEnable()
@@ -30,6 +38,18 @@ public class SnakeHead : MonoBehaviour
         {
             moveAction.performed += OnMovePerformed;
             moveAction.Enable();
+        }
+
+        if (dragPressAction != null)
+        {
+            dragPressAction.started += OnDragStarted;
+            dragPressAction.canceled += OnDragCanceled;
+            dragPressAction.Enable();
+        }
+
+        if (dragPositionAction != null)
+        {
+            dragPositionAction.Enable();
         }
     }
 
@@ -40,6 +60,18 @@ public class SnakeHead : MonoBehaviour
             moveAction.performed -= OnMovePerformed;
             moveAction.Disable();
         }
+
+        if (dragPressAction != null)
+        {
+            dragPressAction.started -= OnDragStarted;
+            dragPressAction.canceled -= OnDragCanceled;
+            dragPressAction.Disable();
+        }
+
+        if (dragPositionAction != null)
+        {
+            dragPositionAction.Disable();
+        }
     }
 
     private void Start()
@@ -49,84 +81,79 @@ public class SnakeHead : MonoBehaviour
 
     private void Update()
     {
-        moveTimer += Time.deltaTime;
-        if (moveTimer < moveInterval)
-        {
-            return;
-        }
-
-        moveTimer = 0f;
+        UpdateDirectionFromInput();
         StepSnake();
     }
 
     private void OnMovePerformed(InputAction.CallbackContext context)
     {
         Vector2 input = context.ReadValue<Vector2>();
-        QueueDirection(input);
+        UpdateDirectionFromVector(input);
     }
 
-    private void QueueDirection(Vector2 input)
+    private void OnDragStarted(InputAction.CallbackContext context)
     {
-        Vector2Int desiredDirection = input switch
-        {
-            { x: > 0.5f } => Vector2Int.right,
-            { x: < -0.5f } => Vector2Int.left,
-            { y: > 0.5f } => Vector2Int.up,
-            { y: < -0.5f } => Vector2Int.down,
-            _ => queuedDirection
-        };
+        isDragging = true;
+    }
 
-        if (desiredDirection == -currentDirection)
+    private void OnDragCanceled(InputAction.CallbackContext context)
+    {
+        isDragging = false;
+        currentDirection = lastDragDirection;
+    }
+
+    private void UpdateDirectionFromInput()
+    {
+        if (isDragging && dragPositionAction != null && mainCamera != null)
+        {
+            Vector2 screenPosition = dragPositionAction.ReadValue<Vector2>();
+            Vector3 worldPoint = mainCamera.ScreenToWorldPoint(new Vector3(
+                screenPosition.x,
+                screenPosition.y,
+                -mainCamera.transform.position.z));
+            Vector2 direction = (Vector2)(worldPoint - transform.position);
+            UpdateDirectionFromVector(direction);
+        }
+    }
+
+    private void UpdateDirectionFromVector(Vector2 input)
+    {
+        if (input.sqrMagnitude <= 0.01f)
         {
             return;
         }
 
-        queuedDirection = desiredDirection;
+        currentDirection = input.normalized;
+        lastDragDirection = currentDirection;
     }
 
     private void ResetSnake()
     {
-        if (board == null || foodManager == null || scoreManager == null || snakeBody == null || moveAction == null)
+        if (foodManager == null || scoreManager == null || snakeBody == null)
         {
-            Debug.LogError("SnakeHead requires Board, FoodManager, ScoreManager, SnakeBody, and Move InputAction references.");
+            Debug.LogError("SnakeHead requires FoodManager, ScoreManager, and SnakeBody references.");
             enabled = false;
             return;
         }
 
-        headCell = board.GetStartCell();
-        transform.position = board.GridToWorld(headCell);
+        headPosition = new Vector2(transform.position.x, transform.position.y);
 
-        snakeBody.Initialize(board);
-        snakeBody.ResetBody(headCell);
-
-        currentDirection = Vector2Int.right;
-        queuedDirection = currentDirection;
-        pendingGrowth = snakeBody.BodyCells.Count;
+        currentDirection = Vector2.right;
+        lastDragDirection = currentDirection;
+        snakeBody.ResetBody(headPosition, currentDirection);
+        pendingGrowth = snakeBody.BodySegments.Count;
 
         scoreManager.ResetScore();
-        foodManager.SpawnFood(board, BuildOccupiedCells());
-        snakeBody.RefreshVisuals(headCell);
+        foodManager.SpawnFood();
+        snakeBody.RefreshVisuals(headPosition);
         UpdateHeadRotation(currentDirection);
     }
 
     private void StepSnake()
     {
-        currentDirection = queuedDirection;
         UpdateHeadRotation(currentDirection);
-        Vector2Int nextHead = board.WrapPosition(headCell + currentDirection);
-
-        int collisionIndex = snakeBody.FindBodyCollisionIndex(nextHead);
-        if (collisionIndex >= 0)
-        {
-            int removed = snakeBody.TrimFromIndex(collisionIndex);
-            scoreManager.RemoveBodyPoints(removed);
-        }
-
-        bool ateFood = foodManager.IsFoodAt(nextHead);
-        if (ateFood)
-        {
-            pendingGrowth++;
-        }
+        float distance = moveSpeed * Time.deltaTime;
+        headPosition += currentDirection * distance;
 
         bool shouldGrow = pendingGrowth > 0;
         if (shouldGrow)
@@ -134,39 +161,56 @@ public class SnakeHead : MonoBehaviour
             pendingGrowth--;
         }
 
-        Vector2Int previousHead = headCell;
-        headCell = nextHead;
-        transform.position = board.GridToWorld(headCell);
-        snakeBody.MoveTo(headCell, previousHead, shouldGrow);
+        headRigidbody.MovePosition(new Vector2(headPosition.x, headPosition.y));
+        snakeBody.Advance(headPosition, shouldGrow);
 
-        if (ateFood)
-        {
-            scoreManager.AddFoodPoints();
-            foodManager.SpawnFood(board, BuildOccupiedCells());
-        }
+        // Food collection is handled via OnCollisionEnter2D.
     }
 
-    private void UpdateHeadRotation(Vector2Int direction)
+    private void UpdateHeadRotation(Vector2 direction)
     {
-        float angle = direction switch
+        if (direction.sqrMagnitude <= 0.01f)
         {
-            { x: > 0 } => 0f,
-            { x: < 0 } => 180f,
-            { y: > 0 } => 90f,
-            { y: < 0 } => -90f,
-            _ => transform.eulerAngles.z
-        };
+            return;
+        }
+
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f; //fix head rotation
 
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 
-    private List<Vector2Int> BuildOccupiedCells()
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        var occupied = new List<Vector2Int>(snakeBody.BodyCells.Count + 1)
+        if (collision.collider.TryGetComponent(out SnakeFood _))
         {
-            headCell
-        };
-        occupied.AddRange(snakeBody.BodyCells);
-        return occupied;
+            pendingGrowth++;
+            scoreManager.AddFoodPoints();
+            foodManager.SpawnFood();
+            return;
+        }
+
+        SnakeBody collidedBody = collision.collider.GetComponent<SnakeBody>();
+        if (!collidedBody)
+        {
+            collidedBody = collision.collider.GetComponentInParent<SnakeBody>();
+        }
+
+        if (!collidedBody || collidedBody != snakeBody)
+        {
+            return;
+        }
+
+        if (collision.contactCount == 0)
+        {
+            return;
+        }
+
+        Vector2 contactPoint = collision.GetContact(0).point;
+        int hitIndex = snakeBody.FindClosestSegmentIndex(contactPoint);
+        if (hitIndex >= 0)
+        {
+            int removed = snakeBody.TrimFromIndex(hitIndex, headPosition);
+            scoreManager.RemoveBodyPoints(removed);
+        }
     }
 }

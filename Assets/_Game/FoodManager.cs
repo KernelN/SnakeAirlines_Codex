@@ -1,15 +1,18 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class FoodManager : MonoBehaviour
 {
     [SerializeField] private SnakeFood foodPrefab;
+    [SerializeField] private Vector2 spawnAreaCenter = Vector2.zero;
+    [SerializeField] private Vector2 spawnAreaSize = new(24f, 16f);
+    [SerializeField] private LayerMask spawnBlockingLayers = ~0;
+    [SerializeField] private float spawnRaycastDistance = 10f;
 
     private SnakeFood activeFood;
 
-    public Vector2Int CurrentFoodCell => activeFood != null ? activeFood.GridPosition : new Vector2Int(int.MinValue, int.MinValue);
+    public Vector2 CurrentFoodPosition => activeFood != null ? activeFood.WorldPosition : new Vector2(float.MinValue, float.MinValue);
 
-    public void SpawnFood(Board board, IReadOnlyList<Vector2Int> occupiedCells)
+    public void SpawnFood()
     {
         if (foodPrefab == null)
         {
@@ -22,13 +25,36 @@ public class FoodManager : MonoBehaviour
             Destroy(activeFood.gameObject);
         }
 
-        Vector2Int spawnCell = board.GetRandomFreeCell(occupiedCells);
-        activeFood = Instantiate(foodPrefab, board.GridToWorld(spawnCell), Quaternion.identity);
-        activeFood.SetGridPosition(spawnCell);
+        Vector2 spawnPosition = FindFreeSpawnPosition();
+        activeFood = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
     }
 
-    public bool IsFoodAt(Vector2Int cell)
+    private Vector2 FindFreeSpawnPosition()
     {
-        return activeFood != null && activeFood.GridPosition == cell;
+        Vector2 halfSize = spawnAreaSize * 0.5f;
+        Vector2 min = spawnAreaCenter - halfSize;
+        Vector2 max = spawnAreaCenter + halfSize;
+        int maxTries = Mathf.CeilToInt(spawnAreaSize.x * spawnAreaSize.y);
+
+        for (int i = 0; i < maxTries; i++)
+        {
+            Vector2 candidate = new Vector2(
+                Random.Range(min.x, max.x),
+                Random.Range(min.y, max.y));
+
+            if (IsSpawnLocationFree(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return spawnAreaCenter;
+    }
+
+    private bool IsSpawnLocationFree(Vector2 candidate)
+    {
+        Vector2 origin = new Vector2(candidate.x, candidate.y);
+        RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.up, spawnRaycastDistance, spawnBlockingLayers);
+        return !hit;
     }
 }
