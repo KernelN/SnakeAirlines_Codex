@@ -12,9 +12,9 @@ public class SnakeHead : MonoBehaviour
     [SerializeField] InputActionReference dragPressActionReference;
     InputAction dragPressAction;
     [SerializeField] float moveSpeed = 4f;
-    [SerializeField] private float rotationSpeed = 720f;
-    [SerializeField] private float foodCollisionRadius = 0.4f;
-    [SerializeField] private float selfCollisionRadius = 0.3f;
+    [SerializeField] float rotationSpeed = 180;
+    [SerializeField] float foodCollisionRadius = 0.4f;
+    [SerializeField] float selfCollisionRadius = 0.3f;
 
     Vector2 headPosition;
     Vector2 currentDirection = Vector2.right;

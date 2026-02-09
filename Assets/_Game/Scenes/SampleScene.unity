@@ -150,8 +150,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnakeBody
   initialGrowth: 0
-  minTrimIndex: 2
   segmentSpacing: 2
+  pointsPerSegment: 3
+  minTrimIndex: 2
+  pathResolution: 0.05
 --- !u!120 &42452470
 LineRenderer:
   serializedVersion: 3

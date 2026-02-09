@@ -4,21 +4,27 @@ using UnityEngine;
 [RequireComponent(typeof(LineRenderer))]
 public class SnakeBody : MonoBehaviour
 {
-    [SerializeField] private int initialGrowth = 5;
-    [SerializeField] int minTrimIndex = 2;
-    [SerializeField] private float segmentSpacing = 0.25f; // Smaller spacing for smoother look
-    [SerializeField] private float pathResolution = 0.05f; // How often to record the path
+    [Header("Settings")]
+    [SerializeField] int initialGrowth = 5;
+    [SerializeField] float segmentSpacing = 0.5f; // The logical spacing (Game Units)
+    
+    [Tooltip("How many visual/collision points to generate per logical segment. Higher = smoother curves.")]
+    [SerializeField] int pointsPerSegment = 1; 
+    
+    [SerializeField] int minTrimIndex = 2; // Minimum logical segments to keep (safe zone)
+    [SerializeField] float pathResolution = 0.05f; // Recording frequency
 
     // "pathHistory" stores the raw path the head has taken
     private readonly List<Vector2> pathHistory = new();
     
-    // "bodySegments" are the calculated points along that path (for collision/visuals)
-    private readonly List<Vector2> bodySegments = new();
+    // "bodyPoints" stores the calculated visual/collision points
+    private readonly List<Vector2> bodyPoints = new();
 
     private LineRenderer trailRenderer;
-    private int targetSegments;
+    private int targetLogicalSegments;
 
-    public IReadOnlyList<Vector2> BodySegments => bodySegments;
+    // Expose the raw points for SnakeHead to read if needed, though mostly internal now
+    public IReadOnlyList<Vector2> BodySegments => bodyPoints;
     public float SegmentSpacing => segmentSpacing;
 
     private void Awake()
@@ -33,33 +39,31 @@ public class SnakeBody : MonoBehaviour
     public void ResetBody(Vector2 headPosition, Vector2 direction)
     {
         pathHistory.Clear();
-        bodySegments.Clear();
-        targetSegments = initialGrowth;
+        bodyPoints.Clear();
+        targetLogicalSegments = initialGrowth;
 
-        // Initialize the path extending backward from the head so the snake starts fully formed
+        // Initialize path extending backward so snake spawns fully formed
         Vector2 startPos = headPosition;
         Vector2 backDir = -direction.normalized;
         
-        // Create a straight line history to start
-        float requiredLength = (targetSegments + 1) * segmentSpacing;
+        // Calculate total length needed based on logical segments
+        float requiredLength = (targetLogicalSegments + 1) * segmentSpacing;
+        
         pathHistory.Add(startPos);
         pathHistory.Add(startPos + (backDir * requiredLength));
 
-        UpdateBodySegments(headPosition);
+        UpdateBodyPoints(headPosition);
         RefreshVisuals(headPosition);
     }
 
-    // Updated to accept 'direction' (fixing the mismatch with SnakeHead), though we mainly use history now.
     public void Advance(Vector2 headPosition, Vector2 direction, bool shouldGrow)
     {
         if (shouldGrow)
         {
-            targetSegments++;
+            targetLogicalSegments++;
         }
 
-        // 1. Record Path History
-        // We add the current head position to the history list
-        // To save memory, we only record if the head has moved enough from the last point
+        // 1. Record Path
         if (pathHistory.Count == 0)
         {
             pathHistory.Insert(0, headPosition);
@@ -73,34 +77,33 @@ public class SnakeBody : MonoBehaviour
             }
             else
             {
-                // Always update the very first point to the exact head position 
-                // to prevent the neck from appearing detached during small moves
                 pathHistory[0] = headPosition;
             }
         }
 
-        // 2. Reconstruct Body Segments
-        // This calculates where the body parts should be based on the path history
-        UpdateBodySegments(headPosition);
+        // 2. Reconstruct Body Points
+        UpdateBodyPoints(headPosition);
 
-        // 3. Visuals
+        // 3. Update Visuals
         RefreshVisuals(headPosition);
         
         // 4. Cleanup Memory
-        // Remove history points that are too far back and no longer needed by the tail
         CleanupHistory();
     }
 
-    private void UpdateBodySegments(Vector2 headPosition)
+    private void UpdateBodyPoints(Vector2 headPosition)
     {
-        bodySegments.Clear();
+        bodyPoints.Clear();
         
-        // We walk backwards along the pathHistory to find points at exact intervals
-        float currentDistanceWanted = segmentSpacing;
-        int segmentsFound = 0;
+        int actualPointsPerSeg = Mathf.Max(1, pointsPerSegment);
+        float subSegmentSpacing = segmentSpacing / actualPointsPerSeg;
+        int totalPointsNeeded = targetLogicalSegments * actualPointsPerSeg;
+
+        // Walk backwards along pathHistory
+        float currentDistanceWanted = subSegmentSpacing;
+        int pointsFound = 0;
         float distanceTravelled = 0f;
 
-        // Start from the head (index 0)
         Vector2 prevPoint = pathHistory[0];
 
         for (int i = 1; i < pathHistory.Count; i++)
@@ -108,21 +111,19 @@ public class SnakeBody : MonoBehaviour
             Vector2 currentPoint = pathHistory[i];
             float distToNext = Vector2.Distance(prevPoint, currentPoint);
 
-            // While the current segment of history contains the next body point(s)
             while (distanceTravelled + distToNext >= currentDistanceWanted)
             {
-                // Interpolate to find the exact point
                 float remainingDist = currentDistanceWanted - distanceTravelled;
                 float t = remainingDist / distToNext;
                 Vector2 finalPos = Vector2.Lerp(prevPoint, currentPoint, t);
 
-                bodySegments.Add(finalPos);
-                segmentsFound++;
+                bodyPoints.Add(finalPos);
+                pointsFound++;
 
-                if (segmentsFound >= targetSegments)
-                    return; // We have all the segments we need
+                if (pointsFound >= totalPointsNeeded)
+                    return;
 
-                currentDistanceWanted += segmentSpacing;
+                currentDistanceWanted += subSegmentSpacing;
             }
 
             distanceTravelled += distToNext;
@@ -132,8 +133,8 @@ public class SnakeBody : MonoBehaviour
 
     private void CleanupHistory()
     {
-        // Calculate max necessary history length
-        float maxDist = (targetSegments + 2) * segmentSpacing;
+        // Keep enough history for the full length + a little buffer
+        float maxDist = (targetLogicalSegments + 2) * segmentSpacing;
         float currentLen = 0;
 
         for (int i = 0; i < pathHistory.Count - 1; i++)
@@ -141,7 +142,6 @@ public class SnakeBody : MonoBehaviour
             currentLen += Vector2.Distance(pathHistory[i], pathHistory[i+1]);
             if (currentLen > maxDist)
             {
-                // Remove everything after this point
                 int removeCount = pathHistory.Count - (i + 2);
                 if (removeCount > 0)
                 {
@@ -152,49 +152,82 @@ public class SnakeBody : MonoBehaviour
         }
     }
 
-    public int TrimFromIndex(int collisionIndex, Vector2 headPosition)
+    public int TrimFromIndex(int collisionPointIndex, Vector2 headPosition)
     {
-        // If we hit segment 5, we keep 0-4. The removed count is (Total - 5).
-        int removedSegments = bodySegments.Count - collisionIndex;
+        // 1. Convert the collision "Point Index" to a "Logical Segment Index"
+        int actualPointsPerSeg = Mathf.Max(1, pointsPerSegment);
         
-        // Just reducing the targetSegments is enough; the UpdateBodySegments 
-        // function will automatically stop generating the tail next frame.
-        targetSegments = collisionIndex;
+        // If we hit point 5 and pps is 4: 5/4 = 1. We hit inside segment 1.
+        // We trim segment 1 and everything after. So we keep segment 0.
+        int collisionSegmentIndex = collisionPointIndex / actualPointsPerSeg;
 
-        // Force an immediate update so the visual cut happens this frame
-        UpdateBodySegments(headPosition);
+        // 2. Calculate how many logical segments we are removing
+        int logicalSegmentsRemoved = targetLogicalSegments - collisionSegmentIndex;
+        
+        // 3. Update state
+        targetLogicalSegments = collisionSegmentIndex;
+
+        // 4. Force immediate update
+        UpdateBodyPoints(headPosition);
         RefreshVisuals(headPosition);
         
-        return removedSegments;
+        return logicalSegmentsRemoved;
     }
 
-    public int TotalSegments => bodySegments.Count + 1;
+    public int TotalSegments => bodyPoints.Count + 1; // Visual total
 
     public void RefreshVisuals(Vector2 headPosition)
     {
-        trailRenderer.positionCount = bodySegments.Count + 1;
+        trailRenderer.positionCount = bodyPoints.Count + 1;
         trailRenderer.SetPosition(0, new Vector3(headPosition.x, headPosition.y, 0f));
 
-        for (int i = 0; i < bodySegments.Count; i++)
+        for (int i = 0; i < bodyPoints.Count; i++)
         {
-            Vector2 segment = bodySegments[i];
-            trailRenderer.SetPosition(i + 1, new Vector3(segment.x, segment.y, 0f));
+            Vector2 pt = bodyPoints[i];
+            trailRenderer.SetPosition(i + 1, new Vector3(pt.x, pt.y, 0f));
         }
     }
 
-    // Collision logic remains effectively the same
     public int FindCollisionIndex(Vector2 headPosition, float collisionRadius)
     {
-        if (bodySegments.Count == 0) return -1;
+        if (bodyPoints.Count == 0) return -1;
+
+        int actualPointsPerSeg = Mathf.Max(1, pointsPerSegment);
+        // Scale minTrimIndex so the safe zone is physically the same distance
+        int startCheckIndex = minTrimIndex * actualPointsPerSeg;
 
         float radiusSquared = collisionRadius * collisionRadius;
-        for (int i = minTrimIndex; i < bodySegments.Count; i++)
+
+        for (int i = startCheckIndex; i < bodyPoints.Count; i++)
         {
-            if ((bodySegments[i] - headPosition).sqrMagnitude <= radiusSquared)
+            if ((bodyPoints[i] - headPosition).sqrMagnitude <= radiusSquared)
             {
                 return i;
             }
         }
         return -1;
+    }
+    
+    // Helper to find visual segment closest to world point (for debug or other mechanics)
+    public int FindClosestSegmentIndex(Vector2 worldPoint)
+    {
+        if (bodyPoints.Count == 0) return -1;
+
+        int closestIndex = -1;
+        float closestDistanceSquared = float.MaxValue;
+        int actualPointsPerSeg = Mathf.Max(1, pointsPerSegment);
+        int startCheckIndex = minTrimIndex * actualPointsPerSeg;
+
+        for (int i = startCheckIndex; i < bodyPoints.Count; i++)
+        {
+            float distanceSquared = (bodyPoints[i] - worldPoint).sqrMagnitude;
+            if (distanceSquared < closestDistanceSquared)
+            {
+                closestDistanceSquared = distanceSquared;
+                closestIndex = i;
+            }
+        }
+
+        return closestIndex;
     }
 }
