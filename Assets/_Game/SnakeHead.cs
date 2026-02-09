@@ -142,7 +142,7 @@ public class SnakeHead : MonoBehaviour
         }
 
         transform.position = new Vector2(headPosition.x, headPosition.y);
-        snakeBody.Advance(headPosition, currentDirection, shouldGrow);
+        snakeBody.Advance(headPosition, shouldGrow);
         CheckFoodCollision();
         CheckSelfCollision();
     }
