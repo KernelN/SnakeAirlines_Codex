@@ -1,17 +1,20 @@
 using System;
+using TMPro;
 using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
 {
     [SerializeField] private int pointsPerFood = 10;
     [SerializeField] private int pointsPerRemovedSegment = 10;
+    [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private string scoreFormat = "Points: {0}";
 
     public int Score { get; private set; }
     public event Action<int> ScoreChanged;
 
     private void Start()
     {
-        Notify();
+        UpdateScoreText();
     }
 
     public void AddFoodPoints()
@@ -35,6 +38,17 @@ public class ScoreManager : MonoBehaviour
 
     private void Notify()
     {
+        UpdateScoreText();
         ScoreChanged?.Invoke(Score);
+    }
+
+    private void UpdateScoreText()
+    {
+        if (scoreText == null)
+        {
+            return;
+        }
+
+        scoreText.text = string.Format(scoreFormat, Score);
     }
 }
