@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class FoodManager : MonoBehaviour
 {
-    [SerializeField] private SnakeFood foodPrefab;
+    [SerializeField] private SnakeFood[] foodPrefabs;
     [SerializeField] private Board board;
     [SerializeField] private Vector2 spawnAreaCenter = Vector2.zero;
     [SerializeField] private Vector2 spawnAreaSize = new(24f, 16f);
@@ -37,9 +37,9 @@ public class FoodManager : MonoBehaviour
 
     public void SpawnFood()
     {
-        if (foodPrefab == null)
+        if (foodPrefabs == null || foodPrefabs.Length == 0)
         {
-            Debug.LogWarning("Food prefab is missing on FoodManager.");
+            Debug.LogWarning("Food prefabs are missing on FoodManager.");
             return;
         }
 
@@ -49,7 +49,8 @@ public class FoodManager : MonoBehaviour
         }
 
         Vector2 spawnPosition = FindFreeSpawnPosition();
-        activeFood = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
+        SnakeFood selectedPrefab = foodPrefabs[Random.Range(0, foodPrefabs.Length)];
+        activeFood = Instantiate(selectedPrefab, spawnPosition, Quaternion.identity);
     }
 
     public void PlayFoodEatEffect(Vector2 position)

@@ -317,7 +317,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8538b2d465524595b7597d7e304df656, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FoodManager
-  foodPrefab: {fileID: 6077741477200274660, guid: b70e10f9da63ea44faf44c2c2da7d752, type: 3}
+  foodPrefabs:
+  - {fileID: 6077741477200274660, guid: b70e10f9da63ea44faf44c2c2da7d752, type: 3}
   board: {fileID: 778170510}
   spawnAreaCenter: {x: 0, y: 0}
   spawnAreaSize: {x: 24, y: 16}
