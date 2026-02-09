@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class FoodManager : MonoBehaviour
@@ -8,10 +9,31 @@ public class FoodManager : MonoBehaviour
     [SerializeField] private Vector2 spawnAreaSize = new(24f, 16f);
     [SerializeField] private LayerMask spawnBlockingLayers = ~0;
     [SerializeField] private float spawnRaycastDistance = 10f;
+    [SerializeField] private FoodParticleController[] foodEatEffectPool;
 
     private SnakeFood activeFood;
+    private readonly Queue<FoodParticleController> availableEatEffects = new();
 
     public Vector2 CurrentFoodPosition => activeFood != null ? activeFood.WorldPosition : new Vector2(float.MinValue, float.MinValue);
+
+    private void Awake()
+    {
+        if (foodEatEffectPool == null)
+        {
+            return;
+        }
+
+        foreach (FoodParticleController effect in foodEatEffectPool)
+        {
+            if (effect == null)
+            {
+                continue;
+            }
+
+            PrepareEffect(effect);
+            availableEatEffects.Enqueue(effect);
+        }
+    }
 
     public void SpawnFood()
     {
@@ -28,6 +50,17 @@ public class FoodManager : MonoBehaviour
 
         Vector2 spawnPosition = FindFreeSpawnPosition();
         activeFood = Instantiate(foodPrefab, spawnPosition, Quaternion.identity);
+    }
+
+    public void PlayFoodEatEffect(Vector2 position)
+    {
+        if (availableEatEffects.Count == 0)
+        {
+            return;
+        }
+
+        FoodParticleController effect = availableEatEffects.Dequeue();
+        effect.PlayAt(position);
     }
 
     private Vector2 FindFreeSpawnPosition()
@@ -59,5 +92,22 @@ public class FoodManager : MonoBehaviour
         Vector2 origin = new Vector2(candidate.x, candidate.y);
         RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.up, spawnRaycastDistance, spawnBlockingLayers);
         return !hit;
+    }
+
+    private void PrepareEffect(FoodParticleController effect)
+    {
+        effect.Initialize(this);
+        effect.Prepare();
+    }
+
+    internal void ReturnEatEffectToPool(FoodParticleController effect)
+    {
+        if (effect == null)
+        {
+            return;
+        }
+
+        PrepareEffect(effect);
+        availableEatEffects.Enqueue(effect);
     }
 }

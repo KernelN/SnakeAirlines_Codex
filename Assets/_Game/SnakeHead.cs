@@ -15,7 +15,6 @@ public class SnakeHead : MonoBehaviour
     [SerializeField] private float rotationSpeed = 720f;
     [SerializeField] private float foodCollisionRadius = 0.4f;
     [SerializeField] private float selfCollisionRadius = 0.3f;
-
     Vector2 headPosition;
     Vector2 currentDirection = Vector2.right;
     Vector2 lastDragDirection = Vector2.right;
@@ -180,6 +179,7 @@ public class SnakeHead : MonoBehaviour
         {
             pendingGrowth++;
             scoreManager.AddFoodPoints();
+            foodManager.PlayFoodEatEffect(foodPosition);
             foodManager.SpawnFood();
         }
     }
