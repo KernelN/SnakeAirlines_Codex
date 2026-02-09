@@ -7,12 +7,14 @@ public class SnakeBody : MonoBehaviour
     [SerializeField] private int initialGrowth = 2;
     [SerializeField] int minTrimIndex = 2;
     [SerializeField] private float segmentSpacing = 0.5f;
+    [SerializeField] private float safeDistance = 0.3f;
 
     private readonly List<Vector2> bodySegments = new();
 
     private LineRenderer trailRenderer;
     private int targetSegments;
     private Vector2 lastSegmentAnchor;
+    private Vector2 lastMoveDirection = Vector2.right;
 
     public IReadOnlyList<Vector2> BodySegments => bodySegments;
     public float SegmentSpacing => segmentSpacing;
@@ -30,40 +32,48 @@ public class SnakeBody : MonoBehaviour
     {
         bodySegments.Clear();
         targetSegments = initialGrowth;
-        lastSegmentAnchor = headPosition;
+        lastMoveDirection = direction.sqrMagnitude > 0.001f ? direction.normalized : Vector2.right;
+        lastSegmentAnchor = headPosition - (lastMoveDirection * (safeDistance + segmentSpacing));
 
         for (int i = 0; i < targetSegments; i++)
         {
-            bodySegments.Add(headPosition - (direction.normalized * segmentSpacing * (i + 1)));
+            bodySegments.Add(headPosition - (lastMoveDirection * (safeDistance + segmentSpacing * (i + 1))));
         }
 
         RefreshVisuals(headPosition);
     }
 
-    public void Advance(Vector2 headPosition, bool shouldGrow)
+    public void Advance(Vector2 headPosition, Vector2 direction, bool shouldGrow)
     {
         if (shouldGrow)
         {
             targetSegments++;
         }
 
-        float distanceFromAnchor = Vector2.Distance(lastSegmentAnchor, headPosition);
-        while (distanceFromAnchor >= segmentSpacing)
+        if (direction.sqrMagnitude > 0.001f)
         {
-            Vector2 direction = (headPosition - lastSegmentAnchor).normalized;
-            lastSegmentAnchor += direction * segmentSpacing;
-            bodySegments.Insert(0, lastSegmentAnchor);
-            distanceFromAnchor = Vector2.Distance(lastSegmentAnchor, headPosition);
-
-            if (bodySegments.Count > targetSegments)
-            {
-                bodySegments.RemoveAt(bodySegments.Count - 1);
-            }
+            lastMoveDirection = direction.normalized;
         }
 
-        if (bodySegments.Count < targetSegments && bodySegments.Count > 0)
+        Vector2 safeAnchor = headPosition - (lastMoveDirection * safeDistance);
+        Vector2 firstSegmentTarget = safeAnchor - (lastMoveDirection * segmentSpacing);
+        float distanceFromAnchor = Vector2.Distance(lastSegmentAnchor, firstSegmentTarget);
+        while (distanceFromAnchor >= segmentSpacing)
         {
-            bodySegments.Add(bodySegments[^1]);
+            Vector2 anchorDirection = (firstSegmentTarget - lastSegmentAnchor).normalized;
+            lastSegmentAnchor += anchorDirection * segmentSpacing;
+            if (bodySegments.Count < targetSegments)
+            {
+                bodySegments.Insert(0, lastSegmentAnchor);
+            }
+
+            UpdateTrailingSegments();
+            distanceFromAnchor = Vector2.Distance(lastSegmentAnchor, firstSegmentTarget);
+        }
+
+        if (bodySegments.Count < targetSegments)
+        {
+            AddTailSegment();
         }
 
         RefreshVisuals(headPosition);
@@ -83,18 +93,61 @@ public class SnakeBody : MonoBehaviour
         return removedSegments;
     }
 
-    public int TotalSegments => bodySegments.Count + 1;
+    public int TotalSegments => bodySegments.Count + 2;
 
     public void RefreshVisuals(Vector2 headPosition)
     {
-        trailRenderer.positionCount = bodySegments.Count + 1;
+        trailRenderer.positionCount = bodySegments.Count + 2;
         trailRenderer.SetPosition(0, new Vector3(headPosition.x, headPosition.y, 0f));
+
+        Vector2 safePoint = headPosition - (lastMoveDirection * safeDistance);
+        trailRenderer.SetPosition(1, new Vector3(safePoint.x, safePoint.y, 0f));
 
         for (int i = 0; i < bodySegments.Count; i++)
         {
             Vector2 segment = bodySegments[i];
-            trailRenderer.SetPosition(i + 1, new Vector3(segment.x, segment.y, 0f));
+            trailRenderer.SetPosition(i + 2, new Vector3(segment.x, segment.y, 0f));
         }
+    }
+
+    private void UpdateTrailingSegments()
+    {
+        if (bodySegments.Count == 0)
+        {
+            return;
+        }
+
+        bodySegments[0] = lastSegmentAnchor;
+        Vector2 previous = bodySegments[0];
+        for (int i = 1; i < bodySegments.Count; i++)
+        {
+            Vector2 current = bodySegments[i];
+            Vector2 toCurrent = previous - current;
+            Vector2 segmentDirection = toCurrent.sqrMagnitude > 0.001f ? toCurrent.normalized : -lastMoveDirection;
+            bodySegments[i] = previous - (segmentDirection * segmentSpacing);
+            previous = bodySegments[i];
+        }
+    }
+
+    private void AddTailSegment()
+    {
+        if (bodySegments.Count == 0)
+        {
+            bodySegments.Add(lastSegmentAnchor);
+            return;
+        }
+
+        Vector2 tailDirection = -lastMoveDirection;
+        if (bodySegments.Count >= 2)
+        {
+            Vector2 direction = bodySegments[^1] - bodySegments[^2];
+            if (direction.sqrMagnitude > 0.001f)
+            {
+                tailDirection = direction.normalized;
+            }
+        }
+
+        bodySegments.Add(bodySegments[^1] + (tailDirection * segmentSpacing));
     }
 
     public int FindClosestSegmentIndex(Vector2 worldPoint)
