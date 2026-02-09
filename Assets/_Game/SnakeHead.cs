@@ -181,6 +181,7 @@ public class SnakeHead : MonoBehaviour
         {
             pendingGrowth++;
             scoreManager.AddFoodPoints();
+            foodManager.PlayFoodEatEffect(foodPosition);
             foodManager.SpawnFood();
         }
     }

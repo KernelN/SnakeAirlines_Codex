@@ -318,13 +318,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FoodManager
   foodPrefab: {fileID: 6077741477200274660, guid: b70e10f9da63ea44faf44c2c2da7d752, type: 3}
-  board: {fileID: 0}
+  board: {fileID: 778170510}
   spawnAreaCenter: {x: 0, y: 0}
   spawnAreaSize: {x: 24, y: 16}
   spawnBlockingLayers:
     serializedVersion: 2
     m_Bits: 4294967295
   spawnRaycastDistance: 10
+  foodEatEffectPool:
+  - {fileID: 6861039762875258240}
+  - {fileID: 875563397}
+  - {fileID: 1685053426}
 --- !u!4 &283925998
 Transform:
   m_ObjectHideFlags: 0
@@ -683,6 +687,118 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &859243200
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 859243201}
+  m_Layer: 0
+  m_Name: Food Particles
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &859243201
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 859243200}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1155910920}
+  - {fileID: 875563396}
+  - {fileID: 1685053425}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &875563395
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 859243201}
+    m_Modifications:
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9108309697505712623, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_Name
+      value: Food Particles (2)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+--- !u!4 &875563396 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+  m_PrefabInstance: {fileID: 875563395}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &875563397 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6154476660369327375, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+  m_PrefabInstance: {fileID: 875563395}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab6fafbd6b7a0194c9fe59fbfa842695, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FoodParticleController
+--- !u!4 &1155910920 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+  m_PrefabInstance: {fileID: 6861039762875258239}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1491652443
 GameObject:
   m_ObjectHideFlags: 0
@@ -1179,6 +1295,147 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1001 &1685053424
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 859243201}
+    m_Modifications:
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9108309697505712623, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_Name
+      value: Food Particles (3)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+--- !u!4 &1685053425 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+  m_PrefabInstance: {fileID: 1685053424}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1685053426 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6154476660369327375, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+  m_PrefabInstance: {fileID: 1685053424}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab6fafbd6b7a0194c9fe59fbfa842695, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FoodParticleController
+--- !u!1001 &6861039762875258239
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 859243201}
+    m_Modifications:
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9108309697505712623, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_Name
+      value: Food Particles (1)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+--- !u!114 &6861039762875258240 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6154476660369327375, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+  m_PrefabInstance: {fileID: 6861039762875258239}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab6fafbd6b7a0194c9fe59fbfa842695, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FoodParticleController
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1192,3 +1449,4 @@ SceneRoots:
   - {fileID: 550213485}
   - {fileID: 1990360365}
   - {fileID: 1709793447}
+  - {fileID: 859243201}
