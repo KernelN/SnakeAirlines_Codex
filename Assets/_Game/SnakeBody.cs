@@ -22,10 +22,12 @@ public class SnakeBody : MonoBehaviour
 
     private LineRenderer trailRenderer;
     private int targetLogicalSegments;
+    private int targetPointCount;
 
     // Expose the raw points for SnakeHead to read if needed, though mostly internal now
     public IReadOnlyList<Vector2> BodySegments => bodyPoints;
     public float SegmentSpacing => segmentSpacing;
+    public int PointsPerSegment => Mathf.Max(1, pointsPerSegment);
 
     private void Awake()
     {
@@ -41,6 +43,7 @@ public class SnakeBody : MonoBehaviour
         pathHistory.Clear();
         bodyPoints.Clear();
         targetLogicalSegments = initialGrowth;
+        targetPointCount = targetLogicalSegments * PointsPerSegment;
 
         // Initialize path extending backward so snake spawns fully formed
         Vector2 startPos = headPosition;
@@ -61,6 +64,7 @@ public class SnakeBody : MonoBehaviour
         if (shouldGrow)
         {
             targetLogicalSegments++;
+            targetPointCount += PointsPerSegment;
         }
 
         // 1. Record Path
@@ -95,9 +99,9 @@ public class SnakeBody : MonoBehaviour
     {
         bodyPoints.Clear();
         
-        int actualPointsPerSeg = Mathf.Max(1, pointsPerSegment);
+        int actualPointsPerSeg = PointsPerSegment;
         float subSegmentSpacing = segmentSpacing / actualPointsPerSeg;
-        int totalPointsNeeded = targetLogicalSegments * actualPointsPerSeg;
+        int totalPointsNeeded = targetPointCount;
 
         // Walk backwards along pathHistory
         float currentDistanceWanted = subSegmentSpacing;
@@ -134,7 +138,8 @@ public class SnakeBody : MonoBehaviour
     private void CleanupHistory()
     {
         // Keep enough history for the full length + a little buffer
-        float maxDist = (targetLogicalSegments + 2) * segmentSpacing;
+        int logicalSegmentsForLength = Mathf.CeilToInt((float)targetPointCount / PointsPerSegment);
+        float maxDist = (logicalSegmentsForLength + 2) * segmentSpacing;
         float currentLen = 0;
 
         for (int i = 0; i < pathHistory.Count - 1; i++)
@@ -166,6 +171,7 @@ public class SnakeBody : MonoBehaviour
         
         // 3. Update state
         targetLogicalSegments = collisionSegmentIndex;
+        targetPointCount = targetLogicalSegments * actualPointsPerSeg;
 
         // 4. Force immediate update
         UpdateBodyPoints(headPosition);
@@ -186,11 +192,36 @@ public class SnakeBody : MonoBehaviour
         int newTarget = Mathf.Max(0, targetLogicalSegments - count);
         int removed = targetLogicalSegments - newTarget;
         targetLogicalSegments = newTarget;
+        targetPointCount = targetLogicalSegments * PointsPerSegment;
 
         UpdateBodyPoints(headPosition);
         RefreshVisuals(headPosition);
 
         return removed;
+    }
+
+    public int RemoveTailPoints(int points, Vector2 headPosition, out int removedSegments)
+    {
+        removedSegments = 0;
+        if (points <= 0 || targetPointCount <= 0)
+        {
+            return 0;
+        }
+
+        int pointsPerSeg = PointsPerSegment;
+        int previousFullSegments = Mathf.FloorToInt((float)targetPointCount / pointsPerSeg);
+        int newTargetPointCount = Mathf.Max(0, targetPointCount - points);
+        int newFullSegments = Mathf.FloorToInt((float)newTargetPointCount / pointsPerSeg);
+        removedSegments = previousFullSegments - newFullSegments;
+
+        int removedPoints = targetPointCount - newTargetPointCount;
+        targetPointCount = newTargetPointCount;
+        targetLogicalSegments = Mathf.CeilToInt((float)targetPointCount / pointsPerSeg);
+
+        UpdateBodyPoints(headPosition);
+        RefreshVisuals(headPosition);
+
+        return removedPoints;
     }
 
     public void RefreshVisuals(Vector2 headPosition)
