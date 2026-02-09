@@ -176,6 +176,23 @@ public class SnakeBody : MonoBehaviour
 
     public int TotalSegments => bodyPoints.Count + 1; // Visual total
 
+    public int RemoveTailSegments(int count, Vector2 headPosition)
+    {
+        if (count <= 0)
+        {
+            return 0;
+        }
+
+        int newTarget = Mathf.Max(0, targetLogicalSegments - count);
+        int removed = targetLogicalSegments - newTarget;
+        targetLogicalSegments = newTarget;
+
+        UpdateBodyPoints(headPosition);
+        RefreshVisuals(headPosition);
+
+        return removed;
+    }
+
     public void RefreshVisuals(Vector2 headPosition)
     {
         trailRenderer.positionCount = bodyPoints.Count + 1;
