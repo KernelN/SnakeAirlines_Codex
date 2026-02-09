@@ -24,6 +24,7 @@ public class SnakeHead : MonoBehaviour
     int pendingGrowth;
     Camera mainCamera;
     float stuckDistanceAccumulator;
+    int stuckPointsDeducted;
 
     private void Awake()
     {
@@ -130,6 +131,7 @@ public class SnakeHead : MonoBehaviour
         snakeBody.ResetBody(headPosition, currentDirection);
         pendingGrowth = snakeBody.BodySegments.Count;
         stuckDistanceAccumulator = 0f;
+        stuckPointsDeducted = 0;
 
         scoreManager.ResetScore();
         foodManager.SpawnFood();
@@ -161,6 +163,7 @@ public class SnakeHead : MonoBehaviour
         {
             headPosition = desiredPosition;
             stuckDistanceAccumulator = 0f;
+            stuckPointsDeducted = 0;
         }
         else
         {
@@ -178,12 +181,29 @@ public class SnakeHead : MonoBehaviour
 
         if (isStuck && snakeBody != null && snakeBody.SegmentSpacing > 0f)
         {
+            int pointsPerSegment = scoreManager != null ? scoreManager.PointsPerRemovedSegment : 0;
+            if (pointsPerSegment > 0)
+            {
+                float progressInSegments = stuckDistanceAccumulator / snakeBody.SegmentSpacing;
+                int totalPointsToDeduct = Mathf.FloorToInt(progressInSegments * pointsPerSegment);
+                int pointsToDeduct = totalPointsToDeduct - stuckPointsDeducted;
+                if (pointsToDeduct > 0)
+                {
+                    scoreManager.RemovePoints(pointsToDeduct);
+                    stuckPointsDeducted += pointsToDeduct;
+                }
+            }
+
             int segmentsToRemove = Mathf.FloorToInt(stuckDistanceAccumulator / snakeBody.SegmentSpacing);
             if (segmentsToRemove > 0)
             {
                 stuckDistanceAccumulator -= segmentsToRemove * snakeBody.SegmentSpacing;
+                if (pointsPerSegment > 0)
+                {
+                    stuckPointsDeducted = Mathf.Max(0, stuckPointsDeducted - segmentsToRemove * pointsPerSegment);
+                }
                 int removed = snakeBody.RemoveTailSegments(segmentsToRemove, headPosition);
-                if (removed > 0)
+                if (removed > 0 && pointsPerSegment <= 0)
                 {
                     scoreManager.RemoveBodyPoints(removed);
                 }

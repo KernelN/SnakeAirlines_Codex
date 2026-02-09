@@ -10,6 +10,7 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] private string scoreFormat = "Points: {0}";
 
     public int Score { get; private set; }
+    public int PointsPerRemovedSegment => pointsPerRemovedSegment;
     public event Action<int> ScoreChanged;
 
     private void Start()
@@ -26,7 +27,17 @@ public class ScoreManager : MonoBehaviour
     public void RemoveBodyPoints(int removedSegments)
     {
         int deducted = removedSegments * pointsPerRemovedSegment;
-        Score = Mathf.Max(0, Score - deducted);
+        RemovePoints(deducted);
+    }
+
+    public void RemovePoints(int points)
+    {
+        if (points <= 0)
+        {
+            return;
+        }
+
+        Score = Mathf.Max(0, Score - points);
         Notify();
     }
 
