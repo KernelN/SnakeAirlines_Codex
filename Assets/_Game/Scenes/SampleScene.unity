@@ -130,7 +130,6 @@ GameObject:
   - component: {fileID: 42452471}
   - component: {fileID: 42452470}
   - component: {fileID: 42452469}
-  - component: {fileID: 42452472}
   m_Layer: 0
   m_Name: Snake Body
   m_TagString: Untagged
@@ -152,7 +151,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SnakeBody
   initialGrowth: 0
   minTrimIndex: 2
-  segmentSpacing: 1
+  segmentSpacing: 2
 --- !u!120 &42452470
 LineRenderer:
   serializedVersion: 3
@@ -287,49 +286,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!68 &42452472
-EdgeCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 42452468}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_EdgeRadius: 0
-  m_Points:
-  - {x: -0.5, y: 0}
-  - {x: 0.5, y: 0}
-  m_AdjacentStartPoint: {x: 0, y: 0}
-  m_AdjacentEndPoint: {x: 0, y: 0}
-  m_UseAdjacentStartPoint: 0
-  m_UseAdjacentEndPoint: 0
 --- !u!1 &283925996
 GameObject:
   m_ObjectHideFlags: 0
@@ -835,7 +791,6 @@ MonoBehaviour:
   dragPositionActionReference: {fileID: 395499635}
   dragPressActionReference: {fileID: 438395629}
   moveSpeed: 6
-  headRigidbody: {fileID: 1491652450}
   rotationSpeed: 200
   foodCollisionRadius: 0.4
   selfCollisionRadius: 0.3

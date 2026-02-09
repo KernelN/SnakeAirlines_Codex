@@ -133,7 +133,8 @@ public class SnakeHead : MonoBehaviour
     {
         UpdateHeadRotation(currentDirection);
         float distance = moveSpeed * Time.deltaTime;
-        headPosition += (Vector2)transform.up * distance;
+        Vector2 dir = transform.up;
+        headPosition += dir * distance;
 
         bool shouldGrow = pendingGrowth > 0;
         if (shouldGrow)
@@ -142,7 +143,7 @@ public class SnakeHead : MonoBehaviour
         }
 
         transform.position = new Vector2(headPosition.x, headPosition.y);
-        snakeBody.Advance(headPosition, currentDirection, shouldGrow);
+        snakeBody.Advance(headPosition, dir, shouldGrow);
         CheckFoodCollision();
         CheckSelfCollision();
     }
