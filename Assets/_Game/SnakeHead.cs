@@ -7,6 +7,7 @@ public class SnakeHead : MonoBehaviour
     [SerializeField] FoodManager foodManager;
     [SerializeField] ScoreManager scoreManager;
     [SerializeField] SnakeBody snakeBody;
+    [SerializeField] Board board;
     [SerializeField] InputActionReference dragPositionActionReference;
     InputAction dragPositionAction;
     [SerializeField] InputActionReference dragPressActionReference;
@@ -22,6 +23,8 @@ public class SnakeHead : MonoBehaviour
     bool isDragging;
     int pendingGrowth;
     Camera mainCamera;
+    float stuckDistanceAccumulator;
+    int stuckPointsRemoved;
 
     private void Awake()
     {
@@ -116,12 +119,19 @@ public class SnakeHead : MonoBehaviour
             return;
         }
 
+        if (board == null)
+        {
+            board = FindObjectOfType<Board>();
+        }
+
         headPosition = new Vector2(transform.position.x, transform.position.y);
 
         currentDirection = Vector2.right;
         lastDragDirection = currentDirection;
         snakeBody.ResetBody(headPosition, currentDirection);
         pendingGrowth = snakeBody.BodySegments.Count;
+        stuckDistanceAccumulator = 0f;
+        stuckPointsRemoved = 0;
 
         scoreManager.ResetScore();
         foodManager.SpawnFood();
@@ -134,9 +144,33 @@ public class SnakeHead : MonoBehaviour
         UpdateHeadRotation(currentDirection);
         float distance = moveSpeed * Time.deltaTime;
         Vector2 dir = transform.up;
-        headPosition += dir * distance;
+        Vector2 desiredPosition = headPosition + dir * distance;
+        bool isStuck = false;
 
-        bool shouldGrow = pendingGrowth > 0;
+        if (board != null)
+        {
+            Vector2 halfSize = board.Size * 0.5f;
+            Vector2 min = board.Center - halfSize;
+            Vector2 max = board.Center + halfSize;
+            if (desiredPosition.x < min.x || desiredPosition.x > max.x
+                || desiredPosition.y < min.y || desiredPosition.y > max.y)
+            {
+                isStuck = true;
+            }
+        }
+
+        if (!isStuck)
+        {
+            headPosition = desiredPosition;
+            stuckDistanceAccumulator = 0f;
+            stuckPointsRemoved = 0;
+        }
+        else
+        {
+            stuckDistanceAccumulator += distance;
+        }
+
+        bool shouldGrow = pendingGrowth > 0 && !isStuck;
         if (shouldGrow)
         {
             pendingGrowth--;
@@ -144,6 +178,35 @@ public class SnakeHead : MonoBehaviour
 
         transform.position = new Vector2(headPosition.x, headPosition.y);
         snakeBody.Advance(headPosition, dir, shouldGrow);
+
+        if (isStuck && snakeBody != null && snakeBody.SegmentSpacing > 0f)
+        {
+            float progressInSegments = stuckDistanceAccumulator / snakeBody.SegmentSpacing;
+            int totalPointsToRemove = Mathf.FloorToInt(progressInSegments * snakeBody.PointsPerSegment);
+            int pointsToRemove = totalPointsToRemove - stuckPointsRemoved;
+            if (pointsToRemove > 0)
+            {
+                int removedSegments;
+                int removedPoints = snakeBody.RemoveTailPoints(pointsToRemove, headPosition, out removedSegments);
+                if (removedPoints > 0)
+                {
+                    stuckPointsRemoved += removedPoints;
+                }
+
+                if (removedSegments > 0)
+                {
+                    scoreManager.RemoveBodyPoints(removedSegments);
+                }
+            }
+
+            int segmentsToRemove = Mathf.FloorToInt(stuckDistanceAccumulator / snakeBody.SegmentSpacing);
+            if (segmentsToRemove > 0)
+            {
+                stuckDistanceAccumulator -= segmentsToRemove * snakeBody.SegmentSpacing;
+                stuckPointsRemoved = Mathf.Max(0, stuckPointsRemoved - segmentsToRemove * snakeBody.PointsPerSegment);
+            }
+        }
+
         CheckFoodCollision();
         CheckSelfCollision();
     }
