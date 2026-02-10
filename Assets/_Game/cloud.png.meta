@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 91f6178e099ea1b4f886e0aefff5a691
+guid: 08d1be2c3c6a2e944bda12acd676e030
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 635808264844335355
-    second: airplane_0
+      213: 2147766835387328701
+    second: '[CITYPNG.COM]HD Cartoon Realistic White Cloud Transparent PNG - 2000x2000_0'
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,13 +46,13 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
-  spriteExtrude: 0
+  spriteMode: 1
+  spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
-  spriteBorder: {x: 125, y: 120, z: 120, w: 125}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -113,23 +113,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: airplane_0
+      name: '[CITYPNG.COM]HD Cartoon Realistic White Cloud Transparent PNG - 2000x2000_0'
       rect:
         serializedVersion: 2
-        x: 131
-        y: 125
-        width: 763
-        height: 771
+        x: 0
+        y: 499
+        width: 2000
+        height: 1002
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bf8dd4b8f38d2d800800000000000000
-      internalID: 635808264844335355
+      spriteID: db860a3be866ecd10800000000000000
+      internalID: 2147766835387328701
       vertices: []
       indices: 
       edges: []
@@ -139,7 +139,7 @@ TextureImporter:
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    internalID: 0
     vertices: []
     indices: 
     edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      airplane_0: 635808264844335355
+      '[CITYPNG.COM]HD Cartoon Realistic White Cloud Transparent PNG - 2000x2000_0': 2147766835387328701
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
