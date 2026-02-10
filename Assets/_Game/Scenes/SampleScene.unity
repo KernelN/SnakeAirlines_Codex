@@ -314,17 +314,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 283925996}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8538b2d465524595b7597d7e304df656, type: 3}
+  m_Script: {fileID: 11500000, guid: 8952363d8d304e343912547499f826e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FoodManager
-  foodPrefab: {fileID: 6077741477200274660, guid: b70e10f9da63ea44faf44c2c2da7d752, type: 3}
+  foodPrefabs:
+  - {fileID: 1210522813552861783, guid: 1cdebd78f7d3f70469b05779f0fcd0cf, type: 3}
+  - {fileID: 7830163472896524938, guid: 6f56afc86f00bd64ca02473670252f1b, type: 3}
+  - {fileID: 8090338449089997720, guid: 7dd0c6fe080507f4ab6822d0001fe640, type: 3}
   board: {fileID: 778170510}
+  snakeBody: {fileID: 42452469}
+  snakeHead: {fileID: 1491652447}
   spawnAreaCenter: {x: 0, y: 0}
   spawnAreaSize: {x: 22, y: 14}
-  spawnBlockingLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  spawnRaycastDistance: 10
+  cellSize: 0.5
   foodEatEffectPool:
   - {fileID: 6861039762875258240}
   - {fileID: 875563397}
@@ -453,7 +455,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.45955852, g: 0.6687803, b: 0.735849, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1049,7 +1051,7 @@ MonoBehaviour:
   dragPressActionReference: {fileID: 438395629}
   moveSpeed: 6
   rotationSpeed: 200
-  foodCollisionRadius: 0.4
+  foodCollisionRadius: 1
   selfCollisionRadius: 0.3
 --- !u!58 &1491652449
 CircleCollider2D:
