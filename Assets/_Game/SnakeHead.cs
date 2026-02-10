@@ -112,16 +112,16 @@ public class SnakeHead : MonoBehaviour
 
     private void ResetSnake()
     {
-        if (foodManager == null || scoreManager == null || snakeBody == null)
+        if (!foodManager || !scoreManager || !snakeBody)
         {
             Debug.LogError("SnakeHead requires FoodManager, ScoreManager, and SnakeBody references.");
             enabled = false;
             return;
         }
 
-        if (board == null)
+        if (!board)
         {
-            board = FindObjectOfType<Board>();
+            board = FindAnyObjectByType<Board>();
         }
 
         headPosition = new Vector2(transform.position.x, transform.position.y);

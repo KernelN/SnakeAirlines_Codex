@@ -4,7 +4,6 @@ using UnityEngine;
 public class FoodManager : MonoBehaviour
 {
     [SerializeField] SnakeFood[] foodPrefabs;
-    [SerializeField] Board board;
     [SerializeField] SnakeBody snakeBody;
     [SerializeField] Transform snakeHead;
     [SerializeField] Vector2 spawnAreaCenter = Vector2.zero;
@@ -36,6 +35,13 @@ public class FoodManager : MonoBehaviour
         }
     }
 
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(new Vector3(spawnAreaCenter.x, spawnAreaCenter.y, 0f),
+                                new Vector3(spawnAreaSize.x, spawnAreaSize.y, 0f));
+    }
+    
     public void SpawnFood()
     {
         if (foodPrefabs == null || foodPrefabs.Length == 0)
@@ -67,8 +73,8 @@ public class FoodManager : MonoBehaviour
 
     private Vector2 FindFreeSpawnPosition()
     {
-        Vector2 areaCenter = board ? board.Center : spawnAreaCenter;
-        Vector2 areaSize = board ? board.Size : spawnAreaSize;
+        Vector2 areaCenter = spawnAreaCenter;
+        Vector2 areaSize = spawnAreaSize;
         Vector2 halfSize = areaSize * 0.5f;
         Vector2 min = areaCenter - halfSize;
         Vector2 max = areaCenter + halfSize;
