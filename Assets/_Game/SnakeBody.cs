@@ -10,6 +10,8 @@ public class SnakeBody : MonoBehaviour
     
     [Tooltip("How many visual/collision points to generate per logical segment. Higher = smoother curves.")]
     [SerializeField] int pointsPerSegment = 1; 
+
+    [SerializeField] Vector2 firstTailPointOffset = Vector2.zero;
     
     [SerializeField] int minTrimIndex = 2; // Minimum logical segments to keep (safe zone)
     [SerializeField] float pathResolution = 0.05f; // Recording frequency
@@ -56,7 +58,7 @@ public class SnakeBody : MonoBehaviour
         pathHistory.Add(startPos + (backDir * requiredLength));
 
         UpdateBodyPoints(headPosition);
-        RefreshVisuals(headPosition);
+        RefreshVisuals(headPosition, direction);
     }
 
     public void Advance(Vector2 headPosition, Vector2 direction, bool shouldGrow)
@@ -89,7 +91,7 @@ public class SnakeBody : MonoBehaviour
         UpdateBodyPoints(headPosition);
 
         // 3. Update Visuals
-        RefreshVisuals(headPosition);
+        RefreshVisuals(headPosition, direction);
         
         // 4. Cleanup Memory
         CleanupHistory();
@@ -157,7 +159,7 @@ public class SnakeBody : MonoBehaviour
         }
     }
 
-    public int TrimFromIndex(int collisionPointIndex, Vector2 headPosition)
+    public int TrimFromIndex(int collisionPointIndex, Vector2 headPosition, Vector2 headUp)
     {
         // 1. Convert the collision "Point Index" to a "Logical Segment Index"
         int actualPointsPerSeg = Mathf.Max(1, pointsPerSegment);
@@ -175,14 +177,14 @@ public class SnakeBody : MonoBehaviour
 
         // 4. Force immediate update
         UpdateBodyPoints(headPosition);
-        RefreshVisuals(headPosition);
+        RefreshVisuals(headPosition, headUp);
         
         return logicalSegmentsRemoved;
     }
 
     public int TotalSegments => bodyPoints.Count + 1; // Visual total
 
-    public int RemoveTailSegments(int count, Vector2 headPosition)
+    public int RemoveTailSegments(int count, Vector2 headPosition, Vector2 headUp)
     {
         if (count <= 0)
         {
@@ -195,12 +197,12 @@ public class SnakeBody : MonoBehaviour
         targetPointCount = targetLogicalSegments * PointsPerSegment;
 
         UpdateBodyPoints(headPosition);
-        RefreshVisuals(headPosition);
+        RefreshVisuals(headPosition, headUp);
 
         return removed;
     }
 
-    public int RemoveTailPoints(int points, Vector2 headPosition, out int removedSegments)
+    public int RemoveTailPoints(int points, Vector2 headPosition, Vector2 headUp, out int removedSegments)
     {
         removedSegments = 0;
         if (points <= 0 || targetPointCount <= 0)
@@ -219,12 +221,12 @@ public class SnakeBody : MonoBehaviour
         targetLogicalSegments = Mathf.CeilToInt((float)targetPointCount / pointsPerSeg);
 
         UpdateBodyPoints(headPosition);
-        RefreshVisuals(headPosition);
+        RefreshVisuals(headPosition, headUp);
 
         return removedPoints;
     }
 
-    public void RefreshVisuals(Vector2 headPosition)
+    public void RefreshVisuals(Vector2 headPosition, Vector2 headUp)
     {
         trailRenderer.positionCount = bodyPoints.Count + 1;
         trailRenderer.SetPosition(0, new Vector3(headPosition.x, headPosition.y, 0f));
@@ -232,6 +234,13 @@ public class SnakeBody : MonoBehaviour
         for (int i = 0; i < bodyPoints.Count; i++)
         {
             Vector2 pt = bodyPoints[i];
+            if (i == 0 && firstTailPointOffset != Vector2.zero)
+            {
+                Vector2 normalizedUp = headUp.sqrMagnitude > 0f ? headUp.normalized : Vector2.up;
+                Vector2 right = new Vector2(normalizedUp.y, -normalizedUp.x);
+                Vector2 offset = right * firstTailPointOffset.x + normalizedUp * firstTailPointOffset.y;
+                pt += offset;
+            }
             trailRenderer.SetPosition(i + 1, new Vector3(pt.x, pt.y, 0f));
         }
     }

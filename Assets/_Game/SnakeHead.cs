@@ -135,7 +135,7 @@ public class SnakeHead : MonoBehaviour
 
         scoreManager.ResetScore();
         foodManager.SpawnFood();
-        snakeBody.RefreshVisuals(headPosition);
+        snakeBody.RefreshVisuals(headPosition, currentDirection);
         UpdateHeadRotation(currentDirection);
     }
 
@@ -187,7 +187,7 @@ public class SnakeHead : MonoBehaviour
             if (pointsToRemove > 0)
             {
                 int removedSegments;
-                int removedPoints = snakeBody.RemoveTailPoints(pointsToRemove, headPosition, out removedSegments);
+                int removedPoints = snakeBody.RemoveTailPoints(pointsToRemove, headPosition, dir, out removedSegments);
                 if (removedPoints > 0)
                 {
                     stuckPointsRemoved += removedPoints;
@@ -257,7 +257,7 @@ public class SnakeHead : MonoBehaviour
             return;
         }
 
-        int removed = snakeBody.TrimFromIndex(hitIndex, headPosition);
+        int removed = snakeBody.TrimFromIndex(hitIndex, headPosition, transform.up);
         scoreManager.RemoveBodyPoints(removed);
     }
 }
