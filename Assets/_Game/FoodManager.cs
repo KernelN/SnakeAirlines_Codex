@@ -5,10 +5,11 @@ public class FoodManager : MonoBehaviour
 {
     [SerializeField] private SnakeFood[] foodPrefabs;
     [SerializeField] private Board board;
+    [SerializeField] private SnakeBody snakeBody;
+    [SerializeField] private Transform snakeHead;
     [SerializeField] private Vector2 spawnAreaCenter = Vector2.zero;
     [SerializeField] private Vector2 spawnAreaSize = new(24f, 16f);
-    [SerializeField] private LayerMask spawnBlockingLayers = ~0;
-    [SerializeField] private float spawnRaycastDistance = 10f;
+    [SerializeField] private float cellSize = 0.5f;
     [SerializeField] private FoodParticleController[] foodEatEffectPool;
 
     private SnakeFood activeFood;
@@ -71,28 +72,58 @@ public class FoodManager : MonoBehaviour
         Vector2 halfSize = areaSize * 0.5f;
         Vector2 min = areaCenter - halfSize;
         Vector2 max = areaCenter + halfSize;
-        int maxTries = Mathf.CeilToInt(areaSize.x * areaSize.y);
+        int minCellX = Mathf.CeilToInt((min.x - areaCenter.x) / cellSize);
+        int maxCellX = Mathf.FloorToInt((max.x - areaCenter.x) / cellSize);
+        int minCellY = Mathf.CeilToInt((min.y - areaCenter.y) / cellSize);
+        int maxCellY = Mathf.FloorToInt((max.y - areaCenter.y) / cellSize);
+        int maxTries = Mathf.Max(1, (maxCellX - minCellX + 1) * (maxCellY - minCellY + 1));
+        HashSet<Vector2Int> occupiedCells = BuildOccupiedCells(areaCenter);
 
         for (int i = 0; i < maxTries; i++)
         {
-            Vector2 candidate = new Vector2(
-                Random.Range(min.x, max.x),
-                Random.Range(min.y, max.y));
+            Vector2Int cell = new Vector2Int(
+                Random.Range(minCellX, maxCellX + 1),
+                Random.Range(minCellY, maxCellY + 1));
 
-            if (IsSpawnLocationFree(candidate))
+            if (!occupiedCells.Contains(cell))
             {
-                return candidate;
+                return areaCenter + new Vector2(cell.x * cellSize, cell.y * cellSize);
             }
         }
 
         return areaCenter;
     }
 
-    private bool IsSpawnLocationFree(Vector2 candidate)
+    private HashSet<Vector2Int> BuildOccupiedCells(Vector2 areaCenter)
     {
-        Vector2 origin = new Vector2(candidate.x, candidate.y);
-        RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.up, spawnRaycastDistance, spawnBlockingLayers);
-        return !hit;
+        HashSet<Vector2Int> occupied = new();
+
+        if (snakeHead != null)
+        {
+            occupied.Add(WorldToCell(areaCenter, snakeHead.position));
+        }
+
+        if (snakeBody != null)
+        {
+            foreach (Vector2 segment in snakeBody.BodySegments)
+            {
+                occupied.Add(WorldToCell(areaCenter, segment));
+            }
+        }
+
+        if (activeFood != null)
+        {
+            occupied.Add(WorldToCell(areaCenter, activeFood.WorldPosition));
+        }
+
+        return occupied;
+    }
+
+    private Vector2Int WorldToCell(Vector2 areaCenter, Vector2 worldPosition)
+    {
+        float cellX = (worldPosition.x - areaCenter.x) / cellSize;
+        float cellY = (worldPosition.y - areaCenter.y) / cellSize;
+        return new Vector2Int(Mathf.RoundToInt(cellX), Mathf.RoundToInt(cellY));
     }
 
     private void PrepareEffect(FoodParticleController effect)

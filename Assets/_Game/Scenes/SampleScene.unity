@@ -320,12 +320,11 @@ MonoBehaviour:
   foodPrefabs:
   - {fileID: 6077741477200274660, guid: b70e10f9da63ea44faf44c2c2da7d752, type: 3}
   board: {fileID: 778170510}
+  snakeBody: {fileID: 42452469}
+  snakeHead: {fileID: 1491652447}
   spawnAreaCenter: {x: 0, y: 0}
   spawnAreaSize: {x: 24, y: 16}
-  spawnBlockingLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  spawnRaycastDistance: 10
+  cellSize: 0.5
   foodEatEffectPool:
   - {fileID: 6861039762875258240}
   - {fileID: 875563397}
