@@ -40,7 +40,7 @@ public class SnakeBody : MonoBehaviour
         }
     }
 
-    public void ResetBody(Vector2 headPosition, Vector2 direction)
+    public void ResetBody(Transform headTransform)
     {
         pathHistory.Clear();
         bodyPoints.Clear();
@@ -48,8 +48,8 @@ public class SnakeBody : MonoBehaviour
         targetPointCount = targetLogicalSegments * PointsPerSegment;
 
         // Initialize path extending backward so snake spawns fully formed
-        Vector2 startPos = headPosition;
-        Vector2 backDir = -direction.normalized;
+        Vector2 startPos = headTransform.position;
+        Vector2 backDir = -((Vector2)headTransform.up).normalized;
         
         // Calculate total length needed based on logical segments
         float requiredLength = (targetLogicalSegments + 1) * segmentSpacing;
@@ -57,11 +57,11 @@ public class SnakeBody : MonoBehaviour
         pathHistory.Add(startPos);
         pathHistory.Add(startPos + (backDir * requiredLength));
 
-        UpdateBodyPoints(headPosition);
-        RefreshVisuals(headPosition, direction);
+        UpdateBodyPoints(startPos);
+        RefreshVisuals(headTransform);
     }
 
-    public void Advance(Vector2 headPosition, Vector2 direction, bool shouldGrow)
+    public void Advance(Transform headTransform, Vector2 headPosition, bool shouldGrow)
     {
         if (shouldGrow)
         {
@@ -91,7 +91,7 @@ public class SnakeBody : MonoBehaviour
         UpdateBodyPoints(headPosition);
 
         // 3. Update Visuals
-        RefreshVisuals(headPosition, direction);
+        RefreshVisuals(headTransform);
         
         // 4. Cleanup Memory
         CleanupHistory();
@@ -159,7 +159,7 @@ public class SnakeBody : MonoBehaviour
         }
     }
 
-    public int TrimFromIndex(int collisionPointIndex, Vector2 headPosition, Vector2 headUp)
+    public int TrimFromIndex(int collisionPointIndex, Transform headTransform)
     {
         // 1. Convert the collision "Point Index" to a "Logical Segment Index"
         int actualPointsPerSeg = Mathf.Max(1, pointsPerSegment);
@@ -176,15 +176,15 @@ public class SnakeBody : MonoBehaviour
         targetPointCount = targetLogicalSegments * actualPointsPerSeg;
 
         // 4. Force immediate update
-        UpdateBodyPoints(headPosition);
-        RefreshVisuals(headPosition, headUp);
+        UpdateBodyPoints(headTransform.position);
+        RefreshVisuals(headTransform);
         
         return logicalSegmentsRemoved;
     }
 
     public int TotalSegments => bodyPoints.Count + 1; // Visual total
 
-    public int RemoveTailSegments(int count, Vector2 headPosition, Vector2 headUp)
+    public int RemoveTailSegments(int count, Transform headTransform)
     {
         if (count <= 0)
         {
@@ -196,13 +196,13 @@ public class SnakeBody : MonoBehaviour
         targetLogicalSegments = newTarget;
         targetPointCount = targetLogicalSegments * PointsPerSegment;
 
-        UpdateBodyPoints(headPosition);
-        RefreshVisuals(headPosition, headUp);
+        UpdateBodyPoints(headTransform.position);
+        RefreshVisuals(headTransform);
 
         return removed;
     }
 
-    public int RemoveTailPoints(int points, Vector2 headPosition, Vector2 headUp, out int removedSegments)
+    public int RemoveTailPoints(int points, Transform headTransform, out int removedSegments)
     {
         removedSegments = 0;
         if (points <= 0 || targetPointCount <= 0)
@@ -220,15 +220,16 @@ public class SnakeBody : MonoBehaviour
         targetPointCount = newTargetPointCount;
         targetLogicalSegments = Mathf.CeilToInt((float)targetPointCount / pointsPerSeg);
 
-        UpdateBodyPoints(headPosition);
-        RefreshVisuals(headPosition, headUp);
+        UpdateBodyPoints(headTransform.position);
+        RefreshVisuals(headTransform);
 
         return removedPoints;
     }
 
-    public void RefreshVisuals(Vector2 headPosition, Vector2 headUp)
+    public void RefreshVisuals(Transform headTransform)
     {
         trailRenderer.positionCount = bodyPoints.Count + 1;
+        Vector3 headPosition = headTransform.position;
         trailRenderer.SetPosition(0, new Vector3(headPosition.x, headPosition.y, 0f));
 
         for (int i = 0; i < bodyPoints.Count; i++)
@@ -236,9 +237,8 @@ public class SnakeBody : MonoBehaviour
             Vector2 pt = bodyPoints[i];
             if (i == 0 && firstTailPointOffset != Vector2.zero)
             {
-                Vector2 normalizedUp = headUp.sqrMagnitude > 0f ? headUp.normalized : Vector2.up;
-                Vector2 right = new Vector2(normalizedUp.y, -normalizedUp.x);
-                Vector2 offset = right * firstTailPointOffset.x + normalizedUp * firstTailPointOffset.y;
+                Vector2 offset = headTransform.right * firstTailPointOffset.x
+                    + (Vector2)headTransform.up * firstTailPointOffset.y;
                 pt += offset;
             }
             trailRenderer.SetPosition(i + 1, new Vector3(pt.x, pt.y, 0f));
