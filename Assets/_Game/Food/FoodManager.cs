@@ -3,17 +3,17 @@ using UnityEngine;
 
 public class FoodManager : MonoBehaviour
 {
-    [SerializeField] private SnakeFood[] foodPrefabs;
-    [SerializeField] private Board board;
-    [SerializeField] private SnakeBody snakeBody;
-    [SerializeField] private Transform snakeHead;
-    [SerializeField] private Vector2 spawnAreaCenter = Vector2.zero;
-    [SerializeField] private Vector2 spawnAreaSize = new(24f, 16f);
-    [SerializeField] private float cellSize = 0.5f;
-    [SerializeField] private FoodParticleController[] foodEatEffectPool;
+    [SerializeField] SnakeFood[] foodPrefabs;
+    [SerializeField] Board board;
+    [SerializeField] SnakeBody snakeBody;
+    [SerializeField] Transform snakeHead;
+    [SerializeField] Vector2 spawnAreaCenter = Vector2.zero;
+    [SerializeField] Vector2 spawnAreaSize = new(24f, 16f);
+    [SerializeField] float cellSize = 0.5f;
+    [SerializeField] FoodParticleController[] foodEatEffectPool;
 
-    private SnakeFood activeFood;
-    private readonly Queue<FoodParticleController> availableEatEffects = new();
+    SnakeFood activeFood;
+    readonly Queue<FoodParticleController> availableEatEffects = new();
 
     public Vector2 CurrentFoodPosition => activeFood != null ? activeFood.WorldPosition : new Vector2(float.MinValue, float.MinValue);
 

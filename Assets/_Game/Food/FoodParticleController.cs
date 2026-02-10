@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class FoodParticleController : MonoBehaviour
 {
-    [SerializeField] private ParticleSystem particleSystem;
+    [SerializeField] new ParticleSystem particleSystem;
 
     private FoodManager owner;
 

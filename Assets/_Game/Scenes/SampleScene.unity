@@ -314,11 +314,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 283925996}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8538b2d465524595b7597d7e304df656, type: 3}
+  m_Script: {fileID: 11500000, guid: 8952363d8d304e343912547499f826e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FoodManager
   foodPrefabs:
-  - {fileID: 6077741477200274660, guid: b70e10f9da63ea44faf44c2c2da7d752, type: 3}
+  - {fileID: 1210522813552861783, guid: 1cdebd78f7d3f70469b05779f0fcd0cf, type: 3}
+  - {fileID: 7830163472896524938, guid: 6f56afc86f00bd64ca02473670252f1b, type: 3}
+  - {fileID: 8090338449089997720, guid: 7dd0c6fe080507f4ab6822d0001fe640, type: 3}
   board: {fileID: 778170510}
   snakeBody: {fileID: 42452469}
   snakeHead: {fileID: 1491652447}
@@ -453,7 +455,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.45955852, g: 0.6687803, b: 0.735849, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -912,7 +914,7 @@ MonoBehaviour:
   dragPressActionReference: {fileID: 438395629}
   moveSpeed: 6
   rotationSpeed: 200
-  foodCollisionRadius: 0.4
+  foodCollisionRadius: 1
   selfCollisionRadius: 0.3
 --- !u!58 &1491652449
 CircleCollider2D:
@@ -977,6 +979,79 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!1001 &1685053424
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 859243201}
+    m_Modifications:
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9108309697505712623, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+      propertyPath: m_Name
+      value: Food Particles (3)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+--- !u!4 &1685053425 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+  m_PrefabInstance: {fileID: 1685053424}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1685053426 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6154476660369327375, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
+  m_PrefabInstance: {fileID: 1685053424}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab6fafbd6b7a0194c9fe59fbfa842695, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FoodParticleController
 --- !u!1 &1709793444
 GameObject:
   m_ObjectHideFlags: 0
@@ -1295,79 +1370,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!1001 &1685053424
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 859243201}
-    m_Modifications:
-    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9108309697505712623, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-      propertyPath: m_Name
-      value: Food Particles (3)
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
---- !u!4 &1685053425 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2106088625050981319, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-  m_PrefabInstance: {fileID: 1685053424}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1685053426 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6154476660369327375, guid: cbaf6012f45b2464e9765dcf5d482d38, type: 3}
-  m_PrefabInstance: {fileID: 1685053424}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab6fafbd6b7a0194c9fe59fbfa842695, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FoodParticleController
 --- !u!1001 &6861039762875258239
 PrefabInstance:
   m_ObjectHideFlags: 0
